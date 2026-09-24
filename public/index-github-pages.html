@@ -288,22 +288,22 @@
       cursor: pointer;
     }
 
-    /* Message Floating Action Bar & Touch/Tap Context Menu */
+    /* Message Options Button (revealed on hover/tap, opens action menu) */
     .msg-group {
       position: relative;
     }
-    .msg-hover-actions {
+    .msg-options-btn {
       opacity: 0;
       pointer-events: none;
-      transform: translateY(4px);
+      transform: scale(0.9);
       transition: opacity 0.15s ease, transform 0.15s ease;
     }
-    .msg-group:hover .msg-hover-actions,
-    .msg-group:focus-within .msg-hover-actions,
-    .msg-hover-actions.force-show {
+    .msg-group:hover .msg-options-btn,
+    .msg-group:focus-within .msg-options-btn,
+    .msg-options-btn.force-show {
       opacity: 1;
       pointer-events: auto;
-      transform: translateY(0);
+      transform: scale(1);
     }
     .tap-highlight {
       outline: 2px solid var(--accent);
@@ -1904,94 +1904,29 @@
         bubble.appendChild(textP);
       }
 
-      // Message Floating Toolbar (Visible on hover/focus, tap-to-open on touch)
-      const hoverBar = document.createElement('div');
-      hoverBar.className = `msg-hover-actions flex items-center gap-0.5 p-1 rounded-xl bg-theme-surface/90 backdrop-blur-md border border-theme-subtle shadow-xl my-1 z-20 ${isSelf ? 'self-end' : 'self-start'}`;
-
-      // Quick Emoji Reaction Buttons in floating bar
-      ['❤️', '👍', '🔥', '😂'].forEach(emo => {
-        const emoBtn = document.createElement('button');
-        emoBtn.type = 'button';
-        emoBtn.className = 'text-xs px-1.5 py-1 rounded-lg hover:bg-white/10 active:scale-90 transition-transform cursor-pointer';
-        emoBtn.innerText = emo;
-        emoBtn.title = `React ${emo}`;
-        emoBtn.onclick = (e) => {
-          e.stopPropagation();
-          sendReaction(msg.id, emo);
-        };
-        hoverBar.appendChild(emoBtn);
-      });
-
-      // Separator
-      const sep = document.createElement('span');
-      sep.className = 'w-px h-3.5 bg-theme-subtle mx-0.5';
-      hoverBar.appendChild(sep);
-
-      // Reply Button
-      const replyBtn = document.createElement('button');
-      replyBtn.type = 'button';
-      replyBtn.className = 'p-1 rounded-lg text-theme-dim hover:text-white hover:bg-white/10 transition-colors cursor-pointer';
-      replyBtn.title = 'Reply';
-      replyBtn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>';
-      replyBtn.onclick = (e) => {
-        e.stopPropagation();
-        triggerReply(msg);
-      };
-      hoverBar.appendChild(replyBtn);
-
-      // Self-message options: Edit and Unsend
-      if (isSelf) {
-        if (msg.text && !msg.file && !msg.audioData) {
-          const editBtn = document.createElement('button');
-          editBtn.type = 'button';
-          editBtn.className = 'p-1 rounded-lg text-theme-dim hover:text-sky-300 hover:bg-white/10 transition-colors cursor-pointer';
-          editBtn.title = 'Edit Message';
-          editBtn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>';
-          editBtn.onclick = (e) => {
-            e.stopPropagation();
-            openEditModal(msg.id, msg.text);
-          };
-          hoverBar.appendChild(editBtn);
-        }
-
-        const unsendBtn = document.createElement('button');
-        unsendBtn.type = 'button';
-        unsendBtn.className = 'p-1 rounded-lg text-theme-dim hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer';
-        unsendBtn.title = 'Unsend Message';
-        unsendBtn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>';
-        unsendBtn.onclick = (e) => {
-          e.stopPropagation();
-          revokeMessage(msg.id);
-        };
-        hoverBar.appendChild(unsendBtn);
-      }
-
-      // More / Action Sheet trigger button
-      const moreBtn = document.createElement('button');
-      moreBtn.type = 'button';
-      moreBtn.className = 'p-1 rounded-lg text-theme-dim hover:text-white hover:bg-white/10 transition-colors cursor-pointer';
-      moreBtn.title = 'More Actions';
-      moreBtn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg>';
-      moreBtn.onclick = (e) => {
+      // Options (⋯) button revealed beside the bubble on hover/tap
+      const optionsBtn = document.createElement('button');
+      optionsBtn.type = 'button';
+      optionsBtn.className = 'msg-options-btn self-center shrink-0 p-1.5 rounded-xl text-theme-dim hover:text-white hover:bg-white/10 transition-colors cursor-pointer';
+      optionsBtn.title = 'Message options';
+      optionsBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg>';
+      optionsBtn.onclick = (e) => {
         e.stopPropagation();
         openMessageActionSheet(msg, isSelf);
       };
-      hoverBar.appendChild(moreBtn);
 
-      // Tap-on-bubble reveals a compact floating action bar (skipped while selecting text)
+      // Tap-on-bubble reveals the options button (skipped while selecting text)
       bubble.style.cursor = 'pointer';
       bubble.onclick = (e) => {
         // Ignore if clicking on link, button, video or range inside bubble
         if (e.target.closest('a') || e.target.closest('button') || e.target.closest('video') || e.target.closest('input')) return;
-        // If the user just selected text, don't steal it with the action bar
+        // If the user just selected text, don't steal it with the options button
         const sel = window.getSelection();
         if (sel && sel.toString().trim()) return;
-        // Toggle the floating toolbar instead of opening the full action sheet
-        const isOpen = hoverBar.classList.contains('force-show');
-        document.querySelectorAll('.msg-hover-actions.force-show').forEach(b => b.classList.remove('force-show'));
-        document.querySelectorAll('.msg-group.tap-highlight').forEach(m => m.classList.remove('tap-highlight'));
+        const isOpen = optionsBtn.classList.contains('force-show');
+        dismissMessageToolbar();
         if (!isOpen) {
-          hoverBar.classList.add('force-show');
+          optionsBtn.classList.add('force-show');
           msgDiv.classList.add('tap-highlight');
         }
       };
@@ -2006,9 +1941,19 @@
         renderReactionsInBox(reactionWrap, msg.id, msg.reactions);
       }
 
+      // Row containing the bubble and the options button side-by-side
+      const bubbleRow = document.createElement('div');
+      bubbleRow.className = `flex items-start gap-1 max-w-full ${isSelf ? 'flex-row-reverse' : ''}`;
+      if (isSelf) {
+        bubbleRow.appendChild(optionsBtn);
+        bubbleRow.appendChild(bubble);
+      } else {
+        bubbleRow.appendChild(bubble);
+        bubbleRow.appendChild(optionsBtn);
+      }
+
       contentWrap.appendChild(meta);
-      contentWrap.appendChild(bubble);
-      contentWrap.appendChild(hoverBar);
+      contentWrap.appendChild(bubbleRow);
       contentWrap.appendChild(reactionWrap);
 
       msgDiv.appendChild(avatarDiv);
@@ -2047,7 +1992,7 @@
     }
 
     function dismissMessageToolbar() {
-      document.querySelectorAll('.msg-hover-actions.force-show').forEach(b => b.classList.remove('force-show'));
+      document.querySelectorAll('.msg-options-btn.force-show').forEach(b => b.classList.remove('force-show'));
       document.querySelectorAll('.msg-group.tap-highlight').forEach(m => m.classList.remove('tap-highlight'));
     }
     document.addEventListener('click', (e) => {
