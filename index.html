@@ -355,7 +355,6 @@
       <div class="text-center mb-6">
         <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white flex items-center justify-center gap-2">
           <span>Pass<span class="text-theme-accent">Chat</span></span>
-          <span class="text-xs font-mono px-2 py-0.5 rounded-lg bg-theme-elevated border border-theme-subtle text-theme-dim font-normal">v2.0</span>
         </h1>
         <p class="mt-2 text-xs sm:text-sm text-theme-muted max-w-xs mx-auto">
           Private voice calls, video calls, audio notes & files. Enter only a passkey to connect.
@@ -420,7 +419,7 @@
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <span id="currentAvatarDisplay" class="text-xl p-2 rounded-xl bg-theme-surface border border-theme-subtle shrink-0">👤</span>
+            <span id="currentAvatarDisplay" class="text-xl p-2 rounded-xl bg-theme-surface border border-theme-subtle shrink-0">😀</span>
             <input
               type="text"
               id="userNameInput"
@@ -672,7 +671,7 @@
     <div class="w-full max-w-sm bg-theme-surface border border-[var(--accent)] rounded-3xl p-6 text-center shadow-2xl">
       <div class="relative w-20 h-20 mx-auto mb-4 flex items-center justify-center">
         <div class="absolute inset-0 rounded-full bg-[var(--accent-muted)] animate-pulse-ring"></div>
-        <div class="w-16 h-16 rounded-full bg-theme-elevated border-2 border-[var(--accent)] flex items-center justify-center text-3xl shadow-lg" id="incomingCallerAvatar">👤</div>
+        <div class="w-16 h-16 rounded-full bg-theme-elevated border-2 border-[var(--accent)] flex items-center justify-center text-3xl shadow-lg" id="incomingCallerAvatar">😀</div>
       </div>
       
       <div class="text-[11px] font-mono tracking-wider text-theme-accent uppercase mb-1.5" id="incomingCallTypeBadge">
@@ -730,7 +729,7 @@
       <div id="voiceCallAvatarStage" class="hidden flex flex-col items-center justify-center text-center p-6">
         <div class="relative w-32 h-32 mb-4 flex items-center justify-center">
           <div class="absolute inset-0 rounded-full bg-emerald-500/20 animate-pulse-ring"></div>
-          <div class="w-24 h-24 rounded-full bg-theme-elevated border-2 border-emerald-500 flex items-center justify-center text-5xl shadow-2xl" id="voiceCallAvatar">👤</div>
+          <div class="w-24 h-24 rounded-full bg-theme-elevated border-2 border-emerald-500 flex items-center justify-center text-5xl shadow-2xl" id="voiceCallAvatar">😀</div>
         </div>
         <h3 class="text-lg font-bold text-white" id="voiceCallPeerName">Peer</h3>
         
@@ -1075,7 +1074,7 @@
     setupThemeDropdownToggle('headerThemeBtn', 'headerThemeDropdown');
 
     // Configuration
-    const AVATARS = ['👤', '⚡', '🦊', '🐱', '🐼', '🚀', '🛡️', '💎'];
+    const AVATARS = ['😀', '😄', '😊', '😎', '😍', '🥳', '😜', '🤓'];
     const MQTT_BROKERS = [
       'wss://broker.emqx.io:8084/mqtt',
       'wss://broker.hivemq.com:8884/mqtt'
@@ -1097,7 +1096,7 @@
     let currentUser = {
       id: 'u-' + Math.random().toString(36).substring(2, 9),
       name: localStorage.getItem('passchat_name') || 'Guest-' + Math.floor(100 + Math.random() * 900),
-      avatar: localStorage.getItem('passchat_avatar') || '👤'
+      avatar: localStorage.getItem('passchat_avatar') || '😀'
     };
     let soundEnabled = localStorage.getItem('passchat_sound') !== 'false';
     let replyingMessage = null;
@@ -1133,6 +1132,8 @@
     const DB_NAME = 'PassChatVaultDB';
     const DB_VERSION = 1;
     const STORE_NAME = 'room_messages';
+    const lastUsedKey = 'passchat_room_lastused';
+    const ROOM_TTL_MS = 7 * 24 * 60 * 60 * 1000; // rooms auto-expire after 7 days of inactivity
     let dbInstance = null;
 
     function initIndexedDB() {
@@ -1166,6 +1167,7 @@
     async function saveMessageToVault(msg) {
       if (!isVaultPersistenceEnabled || !currentTopic || !cryptoKey) return;
       try {
+        markRoomUsed();
         if (!dbInstance) await initIndexedDB();
         if (!dbInstance) return;
 
@@ -1255,6 +1257,71 @@
           if (countEl) countEl.innerText = count;
         };
       } catch (e) {}
+    }
+
+    function getRoomLastUsed() {
+      try {
+        return JSON.parse(localStorage.getItem(lastUsedKey) || '{}') || {};
+      } catch (e) { return {}; }
+    }
+
+    function markRoomUsed() {
+      if (!currentTopic) return;
+      try {
+        const m = getRoomLastUsed();
+        m[currentTopic] = Date.now();
+        localStorage.setItem(lastUsedKey, JSON.stringify(m));
+      } catch (e) {}
+    }
+
+    // 7-day inactivity expiry: wipes vault records + tracking for stale rooms (each browser's own vault).
+    async function purgeExpiredRooms() {
+      try {
+        if (!dbInstance) await initIndexedDB();
+        if (!dbInstance) return;
+        const now = Date.now();
+        const lastUsed = getRoomLastUsed();
+        const results = await new Promise((resolve) => {
+          const tx = dbInstance.transaction(STORE_NAME, 'readonly');
+          const store = tx.objectStore(STORE_NAME);
+          const req = store.getAll();
+          req.onsuccess = () => resolve(req.result || []);
+          req.onerror = () => resolve([]);
+        });
+        const byTopic = {};
+        for (const rec of results) {
+          if (!rec.topic) continue;
+          if (!byTopic[rec.topic]) byTopic[rec.topic] = { newest: 0, keys: [] };
+          byTopic[rec.topic].keys.push(rec.storageKey);
+          const ts = rec.timestamp || 0;
+          if (ts > byTopic[rec.topic].newest) byTopic[rec.topic].newest = ts;
+        }
+        const delKeys = [];
+        let purged = 0;
+        for (const topic of Object.keys(byTopic)) {
+          const used = Math.max(lastUsed[topic] || 0, byTopic[topic].newest);
+          if (now - used > ROOM_TTL_MS) {
+            delKeys.push(...byTopic[topic].keys);
+            delete lastUsed[topic];
+            purged++;
+          }
+        }
+        if (delKeys.length) {
+          await new Promise((resolve) => {
+            const tx = dbInstance.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            delKeys.forEach(k => store.delete(k));
+            tx.oncomplete = resolve;
+            tx.onerror = resolve;
+          });
+        }
+        try { localStorage.setItem(lastUsedKey, JSON.stringify(lastUsed)); } catch (e) {}
+        if (purged > 0) {
+          console.log(`[Vault] Auto-purged ${purged} inactive room(s) past the 7-day expiry.`);
+        }
+      } catch (e) {
+        console.warn('[Vault] Expiry check error:', e);
+      }
     }
 
     async function nukeCurrentRoomVault() {
@@ -1680,7 +1747,7 @@
 
       const avatarDiv = document.createElement('div');
       avatarDiv.className = 'w-8 h-8 rounded-xl flex items-center justify-center text-sm border border-theme-subtle bg-theme-surface shrink-0';
-      avatarDiv.innerText = msg.sender.avatar || '👤';
+      avatarDiv.innerText = msg.sender.avatar || '😀';
 
       const contentWrap = document.createElement('div');
       contentWrap.className = `max-w-[85%] sm:max-w-[75%] flex flex-col ${isSelf ? 'items-end' : 'items-start'}`;
@@ -2343,10 +2410,12 @@
         playBeep(440, 660);
 
         // Load previously persisted messages for this room from local IndexedDB vault
+        await purgeExpiredRooms();
         const restored = await loadVaultMessagesForCurrentRoom();
         if (restored > 0) {
           showToast(`Restored ${restored} messages from local encrypted vault.`);
         }
+        markRoomUsed();
       } catch (err) {
         console.error('Setup crypto error:', err);
         showToast('Key derivation error: ' + err.message);
@@ -2765,7 +2834,7 @@
       playRingtone();
 
       document.getElementById('incomingCallerName').innerText = data.caller.name;
-      document.getElementById('incomingCallerAvatar').innerText = data.caller.avatar || '👤';
+      document.getElementById('incomingCallerAvatar').innerText = data.caller.avatar || '😀';
       document.getElementById('incomingCallTypeBadge').innerText = data.callType === 'video' ? 'Incoming Video Call' : 'Incoming Voice Call';
       document.getElementById('incomingCallModal').classList.remove('hidden');
     }
@@ -2830,7 +2899,7 @@
         });
 
         document.getElementById('voiceCallPeerName').innerText = pendingOfferData.caller.name || 'Peer';
-        document.getElementById('voiceCallAvatar').innerText = pendingOfferData.caller.avatar || '👤';
+        document.getElementById('voiceCallAvatar').innerText = pendingOfferData.caller.avatar || '😀';
         openCallOverlay(type, 'Connected with ' + pendingOfferData.caller.name);
         startCallTimer();
         pendingOfferData = null;
@@ -2858,7 +2927,7 @@
         const peerName = (data.answerer && data.answerer.name) || 'peer';
         document.getElementById('callPeerSubtitle').innerText = 'Connected with ' + peerName;
         document.getElementById('voiceCallPeerName').innerText = peerName;
-        document.getElementById('voiceCallAvatar').innerText = (data.answerer && data.answerer.avatar) || '👤';
+        document.getElementById('voiceCallAvatar').innerText = (data.answerer && data.answerer.avatar) || '😀';
       }
     }
 
@@ -3507,6 +3576,9 @@
       document.getElementById('joinThemeDropdown').classList.add('hidden');
       document.getElementById('headerThemeDropdown').classList.add('hidden');
     });
+
+    // Auto-expire stale room memories on app startup too (before any room is joined)
+    purgeExpiredRooms();
   </script>
 </body>
 </html>
