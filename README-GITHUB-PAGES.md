@@ -1,24 +1,21 @@
-# PassChat - 1-Page Static Passkey Chat for GitHub Pages
+# PassChat - 1-Page Passkey Suite for GitHub Pages
 
-A serverless, real-time encrypted chat application where users **only need a passkey to join**.
+A serverless, real-time encrypted communication suite where users **only need a passkey to join**.
 
-## Why did GitHub Pages show a white page before?
-Previously, the root repository had an uncompiled Vite template (`/src/main.tsx`). GitHub Pages cannot compile TypeScript or execute `.tsx` files directly, so it showed a blank white screen.
+## Features Included (100% 1-Page Static)
+- **Only Passkey to Join**: Enter any passkey (e.g. `coffee`, `secret99`). Anyone with the same passkey connects to the same private room.
+- **WebRTC Voice Call (P2P)**: Encrypted browser-to-browser voice calling with mute toggle, timer, and active audio indicator.
+- **WebRTC Video Call (P2P)**: High-definition video calling with Picture-in-Picture (PIP) local preview, remote video feed, camera flip/toggle, and mic controls.
+- **Voice Messages (Audio Notes)**: Record and send voice messages directly with audio waveform preview, recording timer, and integrated custom playback.
+- **File Sharing (Any File)**: Send PDFs, ZIP archives, documents, images, audio, and videos. Supports Drag-and-Drop and clipboard pasting with quick download buttons.
+- **End-to-End Encryption**: Derived from your passkey using browser WebCrypto (AES-GCM 256-bit with PBKDF2).
+- **Zero Server Setup**: Ready for instant deployment on GitHub Pages.
 
-## How it works now
-The root **`index.html`** is now a **fully standalone, production-ready single-page application** that runs natively in any browser with zero compilation!
-
-When you push this repository to GitHub:
-1. Go to your GitHub repository **Settings** → **Pages**.
-2. Under **Build and deployment**:
+## How to Host on GitHub Pages
+1. Push this repository to GitHub.
+2. In your repository on GitHub, go to **Settings** → **Pages**.
+3. Under **Build and deployment**:
    - **Source**: `Deploy from a branch`
-   - **Branch**: `main` (or `master`), and folder `/ (root)`
-3. Click **Save**.
-4. GitHub Pages will immediately serve `index.html`. Refresh the page — your chat will appear instantly with no white screen!
-
-## Features
-- **Only Passkey to Join**: Enter any passkey (e.g., `coffee`, `secret99`, `team`). Anyone who enters that exact passkey joins the same private room.
-- **Direct Link Support**: Share `https://<username>.github.io/<repo>/#coffee` to auto-fill the passkey for 1-click access.
-- **Client-Side AES-256 E2E Encryption**: Messages are encrypted directly in the browser via WebCrypto API (AES-GCM 256-bit with PBKDF2) derived from the passkey.
-- **Serverless WebSockets**: Connects over secure SSL WebSockets using public MQTT brokers and local `BroadcastChannel` for tab-to-tab sync.
-- **Zero Server Costs**: Completely static, free hosting on GitHub Pages.
+   - **Branch**: `main` (or `master`), Folder: `/ (root)`
+4. Click **Save**.
+5. Your application will be live at `https://<username>.github.io/<repo>/`!
