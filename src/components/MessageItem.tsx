@@ -5,7 +5,10 @@ import {
   Copy, 
   Check, 
   Code, 
-  Maximize2 
+  Maximize2,
+  Edit2,
+  Trash2,
+  X as XIcon
 } from 'lucide-react';
 import { ChatMessage, UserProfile } from '../types';
 
@@ -14,6 +17,8 @@ interface MessageItemProps {
   currentUser: UserProfile;
   onReact: (messageId: string, emoji: string) => void;
   onReply: (message: ChatMessage) => void;
+  onEdit: (messageId: string, text: string) => void;
+  onDelete: (messageId: string) => void;
   onPreviewImage?: (url: string) => void;
 }
 
@@ -24,10 +29,14 @@ export const MessageItem: React.FC<MessageItemProps> = ({
   currentUser,
   onReact,
   onReply,
+  onEdit,
+  onDelete,
   onPreviewImage,
 }) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editText, setEditText] = useState(message.text);
 
   const isSelf = message.sender.id === currentUser.id;
   const isSystem = Boolean(message.system);
@@ -41,6 +50,18 @@ export const MessageItem: React.FC<MessageItemProps> = ({
     navigator.clipboard.writeText(message.text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSaveEdit = () => {
+    if (editText.trim() && editText !== message.text) {
+      onEdit(message.id, editText);
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditText(message.text);
+    setIsEditing(false);
   };
 
   // Render System messages
@@ -59,6 +80,33 @@ export const MessageItem: React.FC<MessageItemProps> = ({
   // Render formatted message text (code blocks & links)
   const renderFormattedText = (text: string) => {
     if (!text) return null;
+
+    if (isEditing) {
+      return (
+        <div className="w-full mt-1">
+          <textarea
+            value={editText}
+            onChange={(e) => setEditText(e.target.value)}
+            className="w-full bg-slate-900 border border-indigo-400 rounded-lg p-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-400 min-h-[60px]"
+            autoFocus
+          />
+          <div className="flex justify-end gap-2 mt-2">
+            <button
+              onClick={handleCancelEdit}
+              className="px-2 py-1 text-[10px] font-semibold bg-slate-700 hover:bg-slate-600 rounded flex items-center gap-1"
+            >
+              <XIcon className="w-3 h-3" /> Cancel
+            </button>
+            <button
+              onClick={handleSaveEdit}
+              className="px-2 py-1 text-[10px] font-semibold bg-indigo-500 hover:bg-indigo-400 rounded flex items-center gap-1"
+            >
+              <Check className="w-3 h-3" /> Save
+            </button>
+          </div>
+        </div>
+      );
+    }
 
     // Check for triple backtick code blocks
     const codeBlockRegex = /```([\s\S]*?)```/g;
@@ -92,7 +140,10 @@ export const MessageItem: React.FC<MessageItemProps> = ({
     }
 
     return (
-      <div className="space-y-2 whitespace-pre-wrap break-words leading-relaxed text-sm">
+      <div 
+        className={`space-y-2 whitespace-pre-wrap break-words leading-relaxed text-sm ${isSelf ? 'cursor-pointer' : ''}`}
+        onClick={() => isSelf && !isEditing && setIsEditing(true)}
+      >
         {parts.map((p, idx) => {
           if (p.type === 'code') {
             return (
@@ -103,7 +154,10 @@ export const MessageItem: React.FC<MessageItemProps> = ({
                     Code Snippet
                   </span>
                   <button
-                    onClick={() => navigator.clipboard.writeText(p.content.trim())}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigator.clipboard.writeText(p.content.trim());
+                    }}
                     className="hover:text-white transition-colors flex items-center gap-1"
                   >
                     <Copy className="w-3 h-3" />
@@ -127,6 +181,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
                       href={w}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
                       className="underline decoration-indigo-400 text-indigo-300 hover:text-indigo-200 transition-colors"
                     >
                       {w}
@@ -138,6 +193,9 @@ export const MessageItem: React.FC<MessageItemProps> = ({
             </span>
           );
         })}
+        {message.isEdited && (
+          <span className="text-[10px] text-indigo-200/60 ml-1 italic">(edited)</span>
+        )}
       </div>
     );
   };
@@ -220,53 +278,81 @@ export const MessageItem: React.FC<MessageItemProps> = ({
           {renderFormattedText(message.text)}
 
           {/* Floating Action Menu (shows on hover) */}
-          <div
-            className={`absolute top-0 -translate-y-1/2 flex items-center gap-0.5 p-1 rounded-xl bg-slate-900 border border-slate-700 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity z-10 ${
-              isSelf ? 'left-0 -translate-x-4' : 'right-0 translate-x-4'
-            }`}
-          >
-            {/* Quick emoji reactions */}
-            {COMMON_EMOJIS.slice(0, 4).map((emoji) => (
+          {!isEditing && (
+            <div
+              className={`absolute top-0 -translate-y-1/2 flex items-center gap-0.5 p-1 rounded-xl bg-slate-900 border border-slate-700 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity z-10 ${
+                isSelf ? 'left-0 -translate-x-4' : 'right-0 translate-x-4'
+              }`}
+            >
+              {/* Quick emoji reactions */}
+              {COMMON_EMOJIS.slice(0, 4).map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  onClick={() => onReact(message.id, emoji)}
+                  className="p-1 hover:bg-slate-800 rounded-md text-xs transition-transform hover:scale-125"
+                  title={`React with ${emoji}`}
+                >
+                  {emoji}
+                </button>
+              ))}
+
               <button
-                key={emoji}
                 type="button"
-                onClick={() => onReact(message.id, emoji)}
-                className="p-1 hover:bg-slate-800 rounded-md text-xs transition-transform hover:scale-125"
-                title={`React with ${emoji}`}
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-md text-xs"
+                title="More reactions"
               >
-                {emoji}
+                <Smile className="w-3.5 h-3.5" />
               </button>
-            ))}
 
-            <button
-              type="button"
-              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-md text-xs"
-              title="More reactions"
-            >
-              <Smile className="w-3.5 h-3.5" />
-            </button>
+              <div className="w-px h-3 bg-slate-700 my-auto mx-0.5" />
 
-            <div className="w-px h-3 bg-slate-700 my-auto mx-0.5" />
+              <button
+                type="button"
+                onClick={() => onReply(message)}
+                className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-md text-xs"
+                title="Reply"
+              >
+                <Reply className="w-3.5 h-3.5" />
+              </button>
 
-            <button
-              type="button"
-              onClick={() => onReply(message)}
-              className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-md text-xs"
-              title="Reply"
-            >
-              <Reply className="w-3.5 h-3.5" />
-            </button>
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-md text-xs"
+                title="Copy text"
+              >
+                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              </button>
 
-            <button
-              type="button"
-              onClick={handleCopy}
-              className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-md text-xs"
-              title="Copy text"
-            >
-              {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-            </button>
-          </div>
+              {isSelf && (
+                <>
+                  <div className="w-px h-3 bg-slate-700 my-auto mx-0.5" />
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(true)}
+                    className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-md text-xs"
+                    title="Edit message"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm('Are you sure you want to delete this message?')) {
+                        onDelete(message.id);
+                      }
+                    }}
+                    className="p-1 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-md text-xs"
+                    title="Delete message"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </>
+              )}
+            </div>
+          )}
 
           {/* Expanded Emoji Picker */}
           {showEmojiPicker && (
@@ -295,7 +381,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
           <div className="flex flex-wrap gap-1 mt-1.5 px-1">
             {Object.entries(message.reactions).map(([emoji, users]) => {
               if (!users || users.length === 0) return null;
-              const hasReacted = users.includes(currentUser.name);
+              const hasReacted = users.includes(currentUser.id);
 
               return (
                 <button

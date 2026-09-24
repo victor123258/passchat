@@ -29,6 +29,7 @@ export interface ChatMessage {
   reactions: Record<string, string[]>;
   timestamp: number;
   system?: boolean;
+  isEdited?: boolean;
 }
 
 export interface RoomMeta {

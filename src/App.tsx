@@ -20,6 +20,7 @@ import { MembersDrawer } from './components/MembersDrawer';
 import { GitHubPagesModal } from './components/GitHubPagesModal';
 import { ChatMessage, RoomDetails, UserProfile, ReplyInfo } from './types';
 import { playMessageSound, playJoinSound } from './utils/sound';
+import { encryptText, decryptText } from './utils/crypto';
 
 export default function App() {
   // Authentication & Room state (only passkey required!)
@@ -121,7 +122,7 @@ export default function App() {
         }));
       };
 
-      ws.onmessage = (event) => {
+      ws.onmessage = async (event) => {
         try {
           const data = JSON.parse(event.data);
 
@@ -141,7 +142,34 @@ export default function App() {
               setCurrentPassKey(data.room.passKey || passKey);
               setCurrentUser(data.currentUser || user);
               setMembers(data.members || []);
-              setMessages(data.messages || []);
+              
+              // Merge local messages with server messages (prefer server as source of truth)
+              const rawServerMessages: ChatMessage[] = data.messages || [];
+              
+              // Decrypt server messages
+              const decryptPromises = rawServerMessages.map(async (msg) => {
+                if (!msg.system && msg.text) {
+                  const decrypted = await decryptText(msg.text, passKey, roomDetails.id);
+                  return { ...msg, text: decrypted };
+                }
+                return msg;
+              });
+              
+              const serverMessages = await Promise.all(decryptPromises);
+              const localMessagesStr = localStorage.getItem(`passchat_messages_${roomDetails.id}`);
+              let mergedMessages = serverMessages;
+              
+              if (localMessagesStr) {
+                try {
+                  const localMessages: ChatMessage[] = JSON.parse(localMessagesStr);
+                  // Basic deduplication by ID
+                  const existingIds = new Set(serverMessages.map(m => m.id));
+                  const onlyLocal = localMessages.filter(m => !existingIds.has(m.id));
+                  mergedMessages = [...onlyLocal, ...serverMessages].sort((a, b) => a.timestamp - b.timestamp);
+                } catch {}
+              }
+              
+              setMessages(mergedMessages);
               setInRoom(true);
 
               currentCredentialsRef.current = { passKey, user };
@@ -159,14 +187,26 @@ export default function App() {
 
             case 'new_message': {
               const msg: ChatMessage = data.message;
-              setMessages((prev) => {
-                if (prev.some((m) => m.id === msg.id)) return prev;
-                return [...prev, msg];
-              });
+              
+              // Async decrypt if needed
+              const handleNewMessage = async () => {
+                let processedMsg = msg;
+                if (!msg.system && msg.text && activeRoom) {
+                  const decrypted = await decryptText(msg.text, currentPassKey, activeRoom.id);
+                  processedMsg = { ...msg, text: decrypted };
+                }
 
-              if (soundEnabled && !msg.system && msg.sender.id !== currentUser?.id) {
-                playMessageSound();
-              }
+                setMessages((prev) => {
+                  if (prev.some((m) => m.id === processedMsg.id)) return prev;
+                  return [...prev, processedMsg];
+                });
+
+                if (soundEnabled && !processedMsg.system && processedMsg.sender.id !== currentUser?.id) {
+                  playMessageSound();
+                }
+              };
+              
+              handleNewMessage();
               break;
             }
 
@@ -210,6 +250,30 @@ export default function App() {
               break;
             }
 
+            case 'message_edited': {
+              const handleEdit = async () => {
+                let text = data.text;
+                if (activeRoom) {
+                  text = await decryptText(data.text, currentPassKey, activeRoom.id);
+                }
+                setMessages((prev) =>
+                  prev.map((m) => {
+                    if (m.id === data.messageId) {
+                      return { ...m, text: text, isEdited: true };
+                    }
+                    return m;
+                  })
+                );
+              };
+              handleEdit();
+              break;
+            }
+
+            case 'message_deleted': {
+              setMessages((prev) => prev.filter((m) => m.id !== data.messageId));
+              break;
+            }
+
             case 'chat_cleared': {
               setMessages([data.message]);
               break;
@@ -248,16 +312,19 @@ export default function App() {
   }, [inRoom, currentUser, soundEnabled]);
 
   // Send message
-  const handleSendMessage = (
+  const handleSendMessage = async (
     text: string,
     replyTo?: ReplyInfo,
     attachment?: { type: 'image'; url: string }
   ) => {
-    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN || !activeRoom) return;
+
+    // Encrypt text before sending
+    const encrypted = await encryptText(text, currentPassKey, activeRoom.id);
 
     wsRef.current.send(JSON.stringify({
       type: 'send_message',
-      text,
+      text: encrypted,
       replyTo,
       attachment,
     }));
@@ -279,6 +346,29 @@ export default function App() {
       type: 'reaction',
       messageId,
       emoji,
+    }));
+  };
+
+  // Edit message
+  const handleEditMessage = async (messageId: string, text: string) => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN || !activeRoom) return;
+
+    // Encrypt text before sending
+    const encrypted = await encryptText(text, currentPassKey, activeRoom.id);
+
+    wsRef.current.send(JSON.stringify({
+      type: 'edit_message',
+      messageId,
+      text: encrypted,
+    }));
+  };
+
+  // Delete message
+  const handleDeleteMessage = (messageId: string) => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
+    wsRef.current.send(JSON.stringify({
+      type: 'delete_message',
+      messageId,
     }));
   };
 
@@ -348,6 +438,34 @@ export default function App() {
       return next;
     });
   };
+
+  // Persistence: Save messages to localStorage when they change
+  useEffect(() => {
+    if (inRoom && activeRoom && messages.length > 0) {
+      const storageKey = `passchat_messages_${activeRoom.id}`;
+      // Only keep last 100 messages for local storage to stay under 5MB
+      const toSave = messages.slice(-100);
+      localStorage.setItem(storageKey, JSON.stringify(toSave));
+    }
+  }, [messages, inRoom, activeRoom]);
+
+  // Persistence: Save current user
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem('passchat_user', JSON.stringify(currentUser));
+    }
+  }, [currentUser]);
+
+  // Initial load from local storage
+  useEffect(() => {
+    const savedUser = localStorage.getItem('passchat_user');
+    if (savedUser) {
+      try {
+        const user = JSON.parse(savedUser);
+        setCurrentUser(user);
+      } catch {}
+    }
+  }, []);
 
   // Filter messages if search query exists
   const displayedMessages = searchQuery.trim()
@@ -477,6 +595,8 @@ export default function App() {
               message={msg}
               currentUser={currentUser}
               onReact={handleReact}
+              onEdit={handleEditMessage}
+              onDelete={handleDeleteMessage}
               onReply={(m) => setReplyingTo({ id: m.id, text: m.text, senderName: m.sender.name })}
               onPreviewImage={(url) => setPreviewImage(url)}
             />

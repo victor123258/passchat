@@ -287,6 +287,34 @@
       box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
       cursor: pointer;
     }
+
+    /* Message Floating Action Bar & Touch/Tap Context Menu */
+    .msg-group {
+      position: relative;
+    }
+    .msg-hover-actions {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(4px);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+    .msg-group:hover .msg-hover-actions,
+    .msg-group:focus-within .msg-hover-actions,
+    .msg-hover-actions.force-show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+    .tap-highlight {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .reaction-pill {
+      transition: transform 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .reaction-pill:active {
+      transform: scale(0.92);
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased select-none relative">
@@ -613,6 +641,11 @@
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
         </button>
 
+        <!-- Input Emoji Picker Toggle Button -->
+        <button type="button" id="inputEmojiBtn" class="p-2.5 rounded-xl text-theme-dim hover:text-amber-400 hover:bg-theme-elevated transition-colors cursor-pointer" title="Insert Emoji">
+          <span class="text-lg leading-none">😊</span>
+        </button>
+
         <div class="flex-1 bg-theme-input border border-theme-subtle focus-within:border-[var(--accent)] focus-within:ring-1 focus-within:ring-[var(--glow)] rounded-2xl transition-all">
           <textarea
             id="messageInput"
@@ -847,6 +880,71 @@
   <!-- Lightbox Modal -->
   <div id="lightbox" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md cursor-pointer">
     <img id="lightboxImg" class="max-h-[90vh] max-w-full rounded-2xl object-contain shadow-2xl" />
+  </div>
+
+  <!-- ==================== INPUT EMOJI PICKER POPOVER ==================== -->
+  <div id="inputEmojiPopover" class="hidden fixed bottom-18 left-4 sm:left-auto sm:right-auto z-40 w-72 sm:w-80 bg-theme-surface/95 backdrop-blur-xl border border-theme-subtle rounded-3xl p-3 shadow-2xl">
+    <div class="flex items-center justify-between pb-2 mb-2 border-b border-theme-subtle text-xs text-theme-dim">
+      <span class="font-medium text-slate-300">Quick Emojis</span>
+      <button id="closeInputEmojiBtn" class="text-theme-dim hover:text-white p-1">✕</button>
+    </div>
+    <div class="grid grid-cols-7 gap-1.5 max-h-48 overflow-y-auto p-1" id="inputEmojiGrid">
+      <!-- Injected dynamically -->
+    </div>
+  </div>
+
+  <!-- ==================== TAP-TO-ACTION BOTTOM SHEET (MOBILE & DESKTOP) ==================== -->
+  <div id="messageActionSheet" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+    <div class="w-full sm:max-w-sm bg-theme-surface border border-theme-subtle rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl transform transition-transform">
+      <!-- Header bar with message preview -->
+      <div class="flex items-center justify-between mb-3 pb-2.5 border-b border-theme-subtle">
+        <div class="min-w-0 pr-3">
+          <span class="text-[11px] font-semibold text-theme-accent uppercase tracking-wider block" id="sheetAuthorLabel">Message</span>
+          <p class="text-xs text-theme-muted truncate" id="sheetPreviewText">...</p>
+        </div>
+        <button id="closeActionSheetBtn" class="text-theme-dim hover:text-white p-1 text-sm">✕</button>
+      </div>
+
+      <!-- Quick Reactions Row -->
+      <div class="mb-4">
+        <span class="text-[10px] text-theme-dim uppercase tracking-wider block mb-2 font-mono">React with Emoji</span>
+        <div class="flex items-center justify-between gap-1 p-1.5 rounded-2xl bg-theme-input border border-theme-subtle">
+          <button class="sheet-react-btn text-xl p-2 rounded-xl hover:bg-white/10 active:scale-90 transition-transform cursor-pointer" data-emoji="❤️">❤️</button>
+          <button class="sheet-react-btn text-xl p-2 rounded-xl hover:bg-white/10 active:scale-90 transition-transform cursor-pointer" data-emoji="👍">👍</button>
+          <button class="sheet-react-btn text-xl p-2 rounded-xl hover:bg-white/10 active:scale-90 transition-transform cursor-pointer" data-emoji="🔥">🔥</button>
+          <button class="sheet-react-btn text-xl p-2 rounded-xl hover:bg-white/10 active:scale-90 transition-transform cursor-pointer" data-emoji="😂">😂</button>
+          <button class="sheet-react-btn text-xl p-2 rounded-xl hover:bg-white/10 active:scale-90 transition-transform cursor-pointer" data-emoji="😮">😮</button>
+          <button class="sheet-react-btn text-xl p-2 rounded-xl hover:bg-white/10 active:scale-90 transition-transform cursor-pointer" data-emoji="🎉">🎉</button>
+        </div>
+      </div>
+
+      <!-- Action Items List -->
+      <div class="space-y-1.5" id="sheetActionsList">
+        <!-- Reply -->
+        <button id="sheetReplyBtn" class="w-full py-2.5 px-3 rounded-xl bg-theme-elevated hover:bg-theme-surface border border-theme-subtle text-slate-200 text-xs font-medium flex items-center gap-2.5 transition-colors cursor-pointer">
+          <svg class="w-4 h-4 text-theme-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+          <span>Reply to Message</span>
+        </button>
+
+        <!-- Copy Text -->
+        <button id="sheetCopyBtn" class="w-full py-2.5 px-3 rounded-xl bg-theme-elevated hover:bg-theme-surface border border-theme-subtle text-slate-200 text-xs font-medium flex items-center gap-2.5 transition-colors cursor-pointer">
+          <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+          <span>Copy Message Text</span>
+        </button>
+
+        <!-- Edit (Self only) -->
+        <button id="sheetEditBtn" class="hidden w-full py-2.5 px-3 rounded-xl bg-theme-elevated hover:bg-theme-surface border border-theme-subtle text-sky-400 text-xs font-medium flex items-center gap-2.5 transition-colors cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          <span>Edit Message</span>
+        </button>
+
+        <!-- Unsend (Self only) -->
+        <button id="sheetUnsendBtn" class="hidden w-full py-2.5 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs font-semibold flex items-center gap-2.5 transition-colors cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          <span>Unsend (Revoke for Everyone)</span>
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Toast Notification -->
@@ -1696,55 +1794,101 @@
         bubble.appendChild(textP);
       }
 
-      // Reactions, Reply & Edit/Unsend Action Bar
-      const reactionWrap = document.createElement('div');
-      reactionWrap.className = 'flex items-center gap-1 mt-1';
-      reactionWrap.id = 'react-box-' + msg.id;
+      // Message Floating Toolbar (Visible on hover/focus, tap-to-open on touch)
+      const hoverBar = document.createElement('div');
+      hoverBar.className = `msg-hover-actions flex items-center gap-0.5 p-1 rounded-xl bg-theme-surface/90 backdrop-blur-md border border-theme-subtle shadow-xl my-1 z-20 ${isSelf ? 'self-end' : 'self-start'}`;
 
-      ['❤️', '👍', '🔥'].forEach(emo => {
+      // Quick Emoji Reaction Buttons in floating bar
+      ['❤️', '👍', '🔥', '😂'].forEach(emo => {
         const emoBtn = document.createElement('button');
-        emoBtn.className = 'text-[11px] px-1.5 py-0.5 rounded-md bg-theme-surface hover:bg-theme-elevated border border-theme-subtle cursor-pointer transition-colors';
+        emoBtn.type = 'button';
+        emoBtn.className = 'text-xs px-1.5 py-1 rounded-lg hover:bg-white/10 active:scale-90 transition-transform cursor-pointer';
         emoBtn.innerText = emo;
-        emoBtn.onclick = () => sendReaction(msg.id, emo);
-        reactionWrap.appendChild(emoBtn);
+        emoBtn.title = `React ${emo}`;
+        emoBtn.onclick = (e) => {
+          e.stopPropagation();
+          sendReaction(msg.id, emo);
+        };
+        hoverBar.appendChild(emoBtn);
       });
 
-      const replyBtn = document.createElement('button');
-      replyBtn.className = 'text-[10px] text-theme-dim hover:text-white px-1.5 py-0.5 rounded ml-1 cursor-pointer';
-      replyBtn.innerText = 'Reply';
-      replyBtn.onclick = () => {
-        replyingMessage = { id: msg.id, text: msg.text || (msg.file ? msg.file.name : 'Voice message'), senderName: msg.sender.name };
-        document.getElementById('replyAuthor').innerText = `Replying to ${msg.sender.name}:`;
-        document.getElementById('replySnippet').innerText = replyingMessage.text;
-        document.getElementById('replyBanner').classList.remove('hidden');
-        document.getElementById('messageInput').focus();
-      };
-      reactionWrap.appendChild(replyBtn);
+      // Separator
+      const sep = document.createElement('span');
+      sep.className = 'w-px h-3.5 bg-theme-subtle mx-0.5';
+      hoverBar.appendChild(sep);
 
-      // Self-message options: Edit and Revoke ("Unsend")
+      // Reply Button
+      const replyBtn = document.createElement('button');
+      replyBtn.type = 'button';
+      replyBtn.className = 'p-1 rounded-lg text-theme-dim hover:text-white hover:bg-white/10 transition-colors cursor-pointer';
+      replyBtn.title = 'Reply';
+      replyBtn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>';
+      replyBtn.onclick = (e) => {
+        e.stopPropagation();
+        triggerReply(msg);
+      };
+      hoverBar.appendChild(replyBtn);
+
+      // Self-message options: Edit and Unsend
       if (isSelf) {
         if (msg.text && !msg.file && !msg.audioData) {
           const editBtn = document.createElement('button');
-          editBtn.className = 'text-[10px] text-theme-dim hover:text-sky-300 px-1.5 py-0.5 rounded cursor-pointer opacity-75 hover:opacity-100';
-          editBtn.innerText = 'Edit';
-          editBtn.onclick = () => openEditModal(msg.id, msg.text);
-          reactionWrap.appendChild(editBtn);
+          editBtn.type = 'button';
+          editBtn.className = 'p-1 rounded-lg text-theme-dim hover:text-sky-300 hover:bg-white/10 transition-colors cursor-pointer';
+          editBtn.title = 'Edit Message';
+          editBtn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>';
+          editBtn.onclick = (e) => {
+            e.stopPropagation();
+            openEditModal(msg.id, msg.text);
+          };
+          hoverBar.appendChild(editBtn);
         }
 
         const unsendBtn = document.createElement('button');
-        unsendBtn.className = 'text-[10px] text-theme-dim hover:text-rose-400 px-1.5 py-0.5 rounded cursor-pointer opacity-75 hover:opacity-100';
-        unsendBtn.innerText = 'Unsend';
-        unsendBtn.onclick = () => revokeMessage(msg.id);
-        reactionWrap.appendChild(unsendBtn);
+        unsendBtn.type = 'button';
+        unsendBtn.className = 'p-1 rounded-lg text-theme-dim hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer';
+        unsendBtn.title = 'Unsend Message';
+        unsendBtn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>';
+        unsendBtn.onclick = (e) => {
+          e.stopPropagation();
+          revokeMessage(msg.id);
+        };
+        hoverBar.appendChild(unsendBtn);
+      }
 
-        const tick = document.createElement('span');
-        tick.className = 'text-[10px] text-theme-dim font-mono ml-1';
-        tick.innerText = '✓✓';
-        reactionWrap.appendChild(tick);
+      // More / Action Sheet trigger button
+      const moreBtn = document.createElement('button');
+      moreBtn.type = 'button';
+      moreBtn.className = 'p-1 rounded-lg text-theme-dim hover:text-white hover:bg-white/10 transition-colors cursor-pointer';
+      moreBtn.title = 'More Actions';
+      moreBtn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg>';
+      moreBtn.onclick = (e) => {
+        e.stopPropagation();
+        openMessageActionSheet(msg, isSelf);
+      };
+      hoverBar.appendChild(moreBtn);
+
+      // Tap-on-bubble opens action sheet on touch devices
+      bubble.style.cursor = 'pointer';
+      bubble.onclick = (e) => {
+        // Ignore if clicking on link, button, video or range inside bubble
+        if (e.target.closest('button') || e.target.closest('video') || e.target.closest('input')) return;
+        openMessageActionSheet(msg, isSelf);
+      };
+
+      // Applied reactions row
+      const reactionWrap = document.createElement('div');
+      reactionWrap.className = 'flex flex-wrap items-center gap-1 mt-1';
+      reactionWrap.id = 'react-box-' + msg.id;
+
+      // Render any reactions already registered in memory
+      if (msg.reactions) {
+        renderReactionsInBox(reactionWrap, msg.id, msg.reactions);
       }
 
       contentWrap.appendChild(meta);
       contentWrap.appendChild(bubble);
+      contentWrap.appendChild(hoverBar);
       contentWrap.appendChild(reactionWrap);
 
       msgDiv.appendChild(avatarDiv);
@@ -1752,6 +1896,14 @@
 
       messagesContainer.appendChild(msgDiv);
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function triggerReply(msg) {
+      replyingMessage = { id: msg.id, text: msg.text || (msg.file ? msg.file.name : 'Voice message'), senderName: msg.sender.name };
+      document.getElementById('replyAuthor').innerText = `Replying to ${msg.sender.name}:`;
+      document.getElementById('replySnippet').innerText = replyingMessage.text;
+      document.getElementById('replyBanner').classList.remove('hidden');
+      document.getElementById('messageInput').focus();
     }
 
     // Update DOM when a message has been edited

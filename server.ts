@@ -35,6 +35,7 @@ interface ChatMessage {
   reactions: Record<string, string[]>; // emoji -> array of user names or ids
   timestamp: number;
   system?: boolean;
+  isEdited?: boolean;
 }
 
 interface Room {
@@ -517,7 +518,7 @@ async function startServer() {
             }
 
             const currentUsers = targetMsg.reactions[emoji] || [];
-            const userIdentifier = session.user.name;
+            const userIdentifier = session.user.id; // Changed from name to id
 
             if (currentUsers.includes(userIdentifier)) {
               // Toggle off
@@ -534,6 +535,51 @@ async function startServer() {
               type: 'message_reaction',
               messageId,
               reactions: targetMsg.reactions,
+            });
+            break;
+          }
+
+          case 'edit_message': {
+            if (!session.roomId || !session.user) return;
+            const room = rooms.get(session.roomId);
+            if (!room) return;
+
+            const { messageId, text } = payload;
+            const targetMsg = room.messages.find((m) => m.id === messageId);
+            if (!targetMsg || targetMsg.sender.id !== session.user.id) return;
+
+            const cleanText = String(text || '').trim();
+            if (!cleanText) return;
+
+            targetMsg.text = cleanText;
+            targetMsg.isEdited = true;
+
+            broadcastToRoom(session.roomId, {
+              type: 'message_edited',
+              messageId,
+              text: cleanText,
+            });
+            break;
+          }
+
+          case 'delete_message': {
+            if (!session.roomId || !session.user) return;
+            const room = rooms.get(session.roomId);
+            if (!room) return;
+
+            const { messageId } = payload;
+            const msgIndex = room.messages.findIndex((m) => m.id === messageId);
+            if (msgIndex === -1) return;
+            
+            const targetMsg = room.messages[msgIndex];
+            // Only sender or system can delete
+            if (targetMsg.sender.id !== session.user.id && session.user.id !== 'system') return;
+
+            room.messages.splice(msgIndex, 1);
+
+            broadcastToRoom(session.roomId, {
+              type: 'message_deleted',
+              messageId,
             });
             break;
           }
