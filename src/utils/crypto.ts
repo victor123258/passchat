@@ -45,8 +45,14 @@ export async function encryptText(text: string, passkey: string, roomId: string)
     combined.set(iv);
     combined.set(new Uint8Array(encrypted), iv.length);
 
-    // Return as base64
-    return btoa(String.fromCharCode(...combined));
+    // Return as base64 safely in chunks to prevent max call stack errors
+    let binary = '';
+    const len = combined.byteLength;
+    const chunkSize = 8192;
+    for (let i = 0; i < len; i += chunkSize) {
+      binary += String.fromCharCode(...combined.subarray(i, Math.min(i + chunkSize, len)));
+    }
+    return btoa(binary);
   } catch (err) {
     console.error('Encryption error:', err);
     return text; // Fallback to plain text if error (should not happen)
@@ -54,13 +60,16 @@ export async function encryptText(text: string, passkey: string, roomId: string)
 }
 
 export async function decryptText(encryptedBase64: string, passkey: string, roomId: string): Promise<string> {
+  if (!encryptedBase64 || typeof encryptedBase64 !== 'string') return encryptedBase64;
   try {
     const key = await deriveKey(passkey, roomId);
-    const combined = new Uint8Array(
-      atob(encryptedBase64)
-        .split('')
-        .map((c) => c.charCodeAt(0))
-    );
+    const binary = atob(encryptedBase64);
+    const combined = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      combined[i] = binary.charCodeAt(i);
+    }
+
+    if (combined.length <= 12) return encryptedBase64;
 
     const iv = combined.slice(0, 12);
     const ciphertext = combined.slice(12);
