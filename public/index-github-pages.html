@@ -790,27 +790,6 @@
     </div>
   </div>
 
-  <!-- ==================== MESSAGE EDIT MODAL ==================== -->
-  <div id="editMessageModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-    <div class="w-full max-w-lg bg-theme-surface border border-theme-subtle rounded-3xl p-6 shadow-2xl">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="text-base font-bold text-white flex items-center gap-2">
-          <span>Edit Encrypted Message</span>
-          <span class="text-xs font-mono text-theme-dim">(v2)</span>
-        </h3>
-        <button id="closeEditModalBtn" class="text-theme-dim hover:text-white p-1">✕</button>
-      </div>
-      <p class="text-xs text-theme-muted mb-3">Updates will re-encrypt and synchronize in real-time across connected peers.</p>
-      <textarea id="editMessageTextarea" rows="4" class="w-full p-3.5 rounded-2xl bg-theme-input text-white text-sm border border-theme-subtle focus:outline-none focus:border-[var(--accent)] resize-none"></textarea>
-      <div class="flex justify-end gap-2.5 mt-4">
-        <button type="button" id="cancelEditBtn" class="px-4 py-2 rounded-xl bg-theme-elevated hover:bg-theme-surface text-slate-300 text-xs font-medium cursor-pointer">Cancel</button>
-        <button type="button" id="saveEditBtn" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold shadow-md cursor-pointer flex items-center gap-1.5">
-          <span>Save Changes</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
   <!-- ==================== LOCAL VAULT / PERSISTENCE MODAL ==================== -->
   <div id="vaultModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
     <div class="w-full max-w-md bg-theme-surface border border-theme-subtle rounded-3xl p-6 shadow-2xl">
@@ -2100,8 +2079,15 @@
 
     // Update DOM when a message has been edited
     function updateMessageDOM(msg) {
+      // If the inline editor is open on this message, close it first.
+      if (document.getElementById('edit-editor-' + msg.id)) {
+        editingMessageId = null;
+        const oldEditor = document.getElementById('edit-editor-' + msg.id);
+        if (oldEditor) oldEditor.remove();
+      }
       const textEl = document.getElementById('text-' + msg.id);
       if (textEl) {
+        textEl.style.display = '';
         textEl.innerHTML = '';
         const emojiOnly = isMostlyEmoji(msg.text);
         textEl.className = emojiOnly
@@ -2139,46 +2125,110 @@
       showToast('Message unsent');
     }
 
-    // Message Editing
-    function openEditModal(messageId, currentText) {
+    // ==================== INLINE MESSAGE EDITING ====================
+    // Turn the message's text element into a textarea, right where it sits.
+    function startMessageEdit(messageId, currentText) {
+      if (editingMessageId && editingMessageId !== messageId) {
+        cancelMessageEdit();
+      }
+      const textEl = document.getElementById('text-' + messageId);
+      if (!textEl) return;
+
+      // Hide the rendered text, insert a textarea in its place.
+      textEl.style.display = 'none';
+      const editorRow = document.createElement('div');
+      editorRow.id = 'edit-editor-' + messageId;
+      editorRow.className = 'flex flex-col gap-1.5 w-full';
+
+      const ta = document.createElement('textarea');
+      ta.id = 'edit-textarea-' + messageId;
+      ta.value = currentText;
+      ta.rows = Math.max(1, String(currentText).split('\n').length);
+      ta.className = 'w-full p-2.5 rounded-xl bg-black/30 text-white text-sm border border-[var(--accent)] focus:outline-none resize-y';
+
+      const actions = document.createElement('div');
+      actions.className = 'flex items-center justify-end gap-1.5';
+      const cancelBtn = document.createElement('button');
+      cancelBtn.type = 'button';
+      cancelBtn.className = 'px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 text-xs font-medium cursor-pointer';
+      cancelBtn.innerText = 'Cancel';
+      cancelBtn.onclick = (e) => {
+        e.stopPropagation();
+        cancelMessageEdit();
+      };
+      const saveBtn = document.createElement('button');
+      saveBtn.type = 'button';
+      saveBtn.className = 'px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold cursor-pointer flex items-center gap-1.5';
+      saveBtn.innerHTML = '<span>Save</span>';
+      saveBtn.onclick = (e) => {
+        e.stopPropagation();
+        saveMessageEdit(messageId);
+      };
+
+      actions.appendChild(cancelBtn);
+      actions.appendChild(saveBtn);
+      editorRow.appendChild(ta);
+      editorRow.appendChild(actions);
+
+      textEl.insertAdjacentElement('afterend', editorRow);
       editingMessageId = messageId;
-      document.getElementById('editMessageTextarea').value = currentText;
-      document.getElementById('editMessageModal').classList.remove('hidden');
-      document.getElementById('editMessageTextarea').focus();
+      ta.focus();
+      ta.setSelectionRange(ta.value.length, ta.value.length);
+      ta.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+
+      ta.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          e.stopPropagation();
+          cancelMessageEdit();
+        } else if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          saveMessageEdit(messageId);
+        }
+      });
     }
 
-    document.getElementById('closeEditModalBtn').onclick = () => {
-      document.getElementById('editMessageModal').classList.add('hidden');
+    function cancelMessageEdit() {
+      if (!editingMessageId) return;
+      const id = editingMessageId;
+      const editorRow = document.getElementById('edit-editor-' + id);
+      const textEl = document.getElementById('text-' + id);
       editingMessageId = null;
-    };
-    document.getElementById('cancelEditBtn').onclick = () => {
-      document.getElementById('editMessageModal').classList.add('hidden');
+      if (editorRow) editorRow.remove();
+      if (textEl) textEl.style.display = '';
+    }
+
+    async function saveMessageEdit(messageId) {
+      if (editingMessageId !== messageId) return;
+      const ta = document.getElementById('edit-textarea-' + messageId);
+      const updatedText = ta ? ta.value.trim() : '';
+      if (!updatedText) {
+        cancelMessageEdit();
+        return;
+      }
+
       editingMessageId = null;
-    };
+      const editorRow = document.getElementById('edit-editor-' + messageId);
+      if (editorRow) editorRow.remove();
 
-    document.getElementById('saveEditBtn').onclick = async () => {
-      const updatedText = document.getElementById('editMessageTextarea').value.trim();
-      if (!updatedText || !editingMessageId) return;
-
-      const cached = messagesMap.get(editingMessageId);
+      const cached = messagesMap.get(messageId);
       if (cached) {
         cached.text = updatedText;
         cached.isEdited = true;
         updateMessageDOM(cached);
         saveMessageToVault(cached);
-
         await publishEncrypted({
           type: 'edit_message',
-          messageId: editingMessageId,
+          messageId: messageId,
           text: updatedText,
           senderId: currentUser.id
         });
       }
-
-      document.getElementById('editMessageModal').classList.add('hidden');
-      editingMessageId = null;
       showToast('Message updated');
-    };
+    }
+
+    function openEditModal(messageId, currentText) {
+      startMessageEdit(messageId, currentText);
+    }
 
     function sendReaction(messageId, emoji) {
       const action = toggleReactionForUser(messageId, emoji, currentUser.id);
@@ -3438,7 +3488,7 @@
 
     // ==================== GLOBAL KEYBOARD & BACKDROP HANDLING ====================
     // Escape closes every overlay; clicking the backdrop closes modals too.
-    ['messageActionSheet', 'editMessageModal', 'vaultModal', 'lightbox', 'inputEmojiPopover'].forEach((id) => {
+    ['messageActionSheet', 'vaultModal', 'lightbox', 'inputEmojiPopover'].forEach((id) => {
       const el = document.getElementById(id);
       el.addEventListener('click', (e) => {
         if (e.target === el) el.classList.add('hidden');
@@ -3447,7 +3497,11 @@
 
     document.addEventListener('keydown', (e) => {
       if (e.key !== 'Escape') return;
-      ['messageActionSheet', 'editMessageModal', 'vaultModal', 'lightbox', 'inputEmojiPopover'].forEach((id) => {
+      if (editingMessageId && document.getElementById('edit-editor-' + editingMessageId)) {
+        cancelMessageEdit();
+        return;
+      }
+      ['messageActionSheet', 'vaultModal', 'lightbox', 'inputEmojiPopover'].forEach((id) => {
         document.getElementById(id).classList.add('hidden');
       });
       document.getElementById('joinThemeDropdown').classList.add('hidden');
