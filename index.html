@@ -612,7 +612,7 @@
         <div class="p-3.5 rounded-2xl bg-theme-elevated/60 border border-theme-subtle">
           <div class="flex items-center justify-between mb-2">
             <span class="text-xs font-semibold text-theme-muted uppercase tracking-wider">Your Nickname</span>
-            <div id="avatarPicker" class="flex flex-nowrap gap-1 overflow-x-auto max-w-[300px] justify-end pb-0.5"></div>
+            <div id="avatarPicker" class="flex flex-nowrap gap-1 overflow-x-auto max-w-[300px] justify-start pb-0.5"></div>
           </div>
           <div class="flex items-center gap-2">
             <span id="currentAvatarDisplay" class="text-xl p-2 rounded-xl bg-theme-surface border border-theme-subtle shrink-0">😀</span>
@@ -2219,6 +2219,18 @@
         };
         hoverBar.appendChild(emoBtn);
       });
+
+      // More Reactions: opens the full emoji action sheet (desktop & mobile)
+      const moreBtn = document.createElement('button');
+      moreBtn.type = 'button';
+      moreBtn.className = 'p-1 rounded-lg text-theme-dim hover:text-theme-accent hover-theme transition-colors cursor-pointer';
+      moreBtn.title = 'More Reactions';
+      moreBtn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5h6M9 12h6M9 19h6"/></svg>';
+      moreBtn.onclick = (e) => {
+        e.stopPropagation();
+        openMessageActionSheet(msg, isSelf);
+      };
+      hoverBar.appendChild(moreBtn);
 
       // Separator
       const sep = document.createElement('span');
