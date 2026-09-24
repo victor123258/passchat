@@ -2418,7 +2418,7 @@
       }
       const editedInd = document.getElementById('edited-indicator-' + msg.id);
       if (editedInd) {
-        editedInd.classList.remove('hidden');
+        editedInd.classList.toggle('hidden', !msg.isEdited);
       }
     }
 
