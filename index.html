@@ -883,7 +883,7 @@
   </div>
 
   <!-- ==================== INPUT EMOJI PICKER POPOVER ==================== -->
-  <div id="inputEmojiPopover" class="hidden fixed bottom-18 left-4 sm:left-auto sm:right-auto z-40 w-72 sm:w-80 bg-theme-surface/95 backdrop-blur-xl border border-theme-subtle rounded-3xl p-3 shadow-2xl">
+  <div id="inputEmojiPopover" class="hidden fixed bottom-16 right-4 sm:right-6 z-40 w-72 sm:w-80 bg-theme-surface/95 backdrop-blur-xl border border-theme-subtle rounded-3xl p-3 shadow-2xl">
     <div class="flex items-center justify-between pb-2 mb-2 border-b border-theme-subtle text-xs text-theme-dim">
       <span class="font-medium text-slate-300">Quick Emojis</span>
       <button id="closeInputEmojiBtn" class="text-theme-dim hover:text-white p-1">✕</button>
@@ -3227,6 +3227,77 @@
     }
     messageInputEl.addEventListener('input', updateSendButtonState);
     updateSendButtonState();
+
+    // ==================== EMOJI PICKER ====================
+    // Populate the grid once and toggle the popover from the input toolbar button.
+    const EMOJI_GRID_SET = [
+      '😀', '😁', '😂', '🤣', '😊', '😍', '😘', '😜', '🤔', '😎',
+      '😭', '😢', '😡', '🥳', '😴', '🤯', '😱', '👍', '👎', '👏',
+      '🙌', '🤝', '💪', '✌️', '🤞', '👋', '🙏', '💯', '🔥', '✨',
+      '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '💔', '💖', '⭐',
+      '🎉', '🎊', '🎂', '🎁', '📚', '🎵', '🎮', '⚽', '🏆', '🚀',
+      '🌹', '😻', '🌸', '🌈', '☀️', '🌙', '⚡', '🍕', '🍔', '☕',
+      '🕐', '❌', '✅', '❓', '❗', '💡'
+    ];
+
+    const emojiGrid = document.getElementById('inputEmojiGrid');
+    EMOJI_GRID_SET.forEach((em) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'text-xl p-1 rounded-lg hover:bg-white/10 active:scale-90 transition-transform cursor-pointer';
+      b.innerText = em;
+      b.title = em;
+      b.addEventListener('click', () => {
+        insertEmojiIntoInput(em);
+      });
+      emojiGrid.appendChild(b);
+    });
+
+    function insertEmojiIntoInput(em) {
+      const start = messageInputEl.selectionStart ?? messageInputEl.value.length;
+      const end = messageInputEl.selectionEnd ?? messageInputEl.value.length;
+      const val = messageInputEl.value;
+      messageInputEl.value = val.slice(0, start) + em + val.slice(end);
+      const pos = start + em.length;
+      messageInputEl.setSelectionRange(pos, pos);
+      messageInputEl.focus();
+      autoGrowTextarea();
+      updateSendButtonState();
+      // Keep the typing indicator alive so the peer sees fresh input
+      publishEncrypted({
+        type: 'typing',
+        userId: currentUser.id,
+        userName: currentUser.name,
+        isTyping: true
+      });
+      if (typingTimer) clearTimeout(typingTimer);
+      typingTimer = setTimeout(() => {
+        publishEncrypted({
+          type: 'typing',
+          userId: currentUser.id,
+          userName: currentUser.name,
+          isTyping: false
+        });
+      }, 1500);
+      document.getElementById('inputEmojiPopover').classList.add('hidden');
+    }
+
+    document.getElementById('inputEmojiBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const popover = document.getElementById('inputEmojiPopover');
+      const isOpen = !popover.classList.contains('hidden');
+      // Close any sibling overlays first
+      document.getElementById('messageActionSheet').classList.add('hidden');
+      if (isOpen) {
+        popover.classList.add('hidden');
+      } else {
+        popover.classList.remove('hidden');
+      }
+    });
+
+    document.getElementById('closeInputEmojiBtn').addEventListener('click', () => {
+      document.getElementById('inputEmojiPopover').classList.add('hidden');
+    });
 
     // Typing emission
     messageInputEl.addEventListener('input', () => {
