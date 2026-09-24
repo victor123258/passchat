@@ -317,7 +317,7 @@
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col antialiased select-none relative">
+<body class="min-h-screen flex flex-col antialiased relative">
 
   <!-- Ambient Decorative Glows -->
   <div class="ambient-glow top-0 left-1/4"></div>
@@ -495,8 +495,8 @@
           </div>
           <div class="flex items-center gap-2 text-xs text-theme-dim mt-0.5 font-mono">
             <span class="inline-flex items-center gap-1.5 text-[11px] text-emerald-400">
-              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span id="connectionStatusText">Live Connected</span>
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" id="connectionDot"></span>
+              <span id="connectionStatusText">Connecting…</span>
             </span>
             <span class="text-slate-600">·</span>
             <span class="text-[11px]" id="peerCountText">Encrypted P2P</span>
@@ -567,7 +567,7 @@
 
     <!-- Message Stream -->
     <main id="messagesContainer" class="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-3 font-chat scroll-smooth">
-      <div class="py-6 text-center max-w-sm mx-auto">
+      <div id="emptyStateHint" class="py-6 text-center max-w-sm mx-auto">
         <div class="w-12 h-12 rounded-2xl bg-theme-elevated border border-theme-subtle text-theme-accent flex items-center justify-center mx-auto mb-2.5">
           <svg class="w-6 h-6 text-theme-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
         </div>
@@ -1523,7 +1523,30 @@
       const t = document.getElementById('toast');
       t.innerText = text;
       t.classList.remove('hidden');
-      setTimeout(() => t.classList.add('hidden'), 2500);
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => t.classList.add('hidden'), 3000);
+    }
+
+    async function copyTextToClipboard(text, successMsg) {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+        }
+        if (successMsg) showToast(successMsg);
+        return true;
+      } catch (e) {
+        showToast('Could not copy to clipboard.');
+        return false;
+      }
     }
 
     function formatFileSize(bytes) {
@@ -1598,6 +1621,68 @@
     // ==================== MESSAGE RENDERING ====================
     const messagesContainer = document.getElementById('messagesContainer');
 
+    let lastRenderedDay = null;
+
+    function hideEmptyState() {
+      const hint = document.getElementById('emptyStateHint');
+      if (hint) hint.remove();
+    }
+
+    function isNearBottom() {
+      return messagesContainer.scrollHeight - messagesContainer.scrollTop - messagesContainer.clientHeight < 160;
+    }
+
+    function scrollToBottom(smooth = false) {
+      messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+    }
+
+    function renderDateSeparator(timestamp) {
+      const day = new Date(timestamp).toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' });
+      if (lastRenderedDay === day) return;
+      lastRenderedDay = day;
+      const sep = document.createElement('div');
+      sep.className = 'flex justify-center my-3';
+      sep.innerHTML = `<span class="text-[10px] font-mono uppercase tracking-wider text-theme-dim bg-theme-elevated border border-theme-subtle px-2.5 py-1 rounded-full">${day}</span>`;
+      messagesContainer.appendChild(sep);
+      return true;
+    }
+
+    // Lightweight link detection: turns URLs into clickable anchors.
+    function linkifyTextContainer(container, text) {
+      const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
+      let lastIndex = 0;
+      let match;
+      const parts = [];
+      while ((match = urlRegex.exec(text)) !== null) {
+        if (match.index > lastIndex) parts.push({ type: 'text', value: text.slice(lastIndex, match.index) });
+        parts.push({ type: 'link', value: match[0] });
+        lastIndex = match.index + match[0].length;
+      }
+      if (lastIndex < text.length) parts.push({ type: 'text', value: text.slice(lastIndex) });
+
+      parts.forEach(part => {
+        if (part.type === 'link') {
+          const a = document.createElement('a');
+          const href = part.value.startsWith('www.') ? 'https://' + part.value : part.value;
+          a.href = href;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          a.className = 'underline text-sky-400 hover:text-sky-300 break-all';
+          a.innerText = part.value;
+          container.appendChild(a);
+        } else {
+          container.appendChild(document.createTextNode(part.value));
+        }
+      });
+    }
+
+    // Detect if the message is a short, mostly-emoji message (modern chat UX shows these larger).
+    function isMostlyEmoji(text) {
+      const t = text.trim();
+      if (!t || t.length > 12) return false;
+      return /^[\p{Emoji_Presentation}\p{Emoji}\uFE0F\u200D\u0023\u002A\u0030-\u0039\s]+$/u.test(t);
+    }
+
     function appendMessage(msg, isSelf, saveToVault = true) {
       messagesMap.set(msg.id, msg);
       if (saveToVault) {
@@ -1607,10 +1692,12 @@
         updateMessageDOM(msg);
         return;
       }
+      hideEmptyState();
+      renderDateSeparator(msg.timestamp);
 
       const msgDiv = document.createElement('div');
       msgDiv.id = 'msg-' + msg.id;
-      msgDiv.className = `flex gap-2.5 my-2.5 group ${isSelf ? 'flex-row-reverse' : 'flex-row'}`;
+      msgDiv.className = `flex gap-2.5 my-2.5 group items-start ${isSelf ? 'flex-row-reverse' : 'flex-row'}`;
 
       const avatarDiv = document.createElement('div');
       avatarDiv.className = 'w-8 h-8 rounded-xl flex items-center justify-center text-sm border border-theme-subtle bg-theme-surface shrink-0';
@@ -1809,8 +1896,11 @@
       if (msg.text) {
         const textP = document.createElement('div');
         textP.id = 'text-' + msg.id;
-        textP.className = 'whitespace-pre-wrap leading-relaxed';
-        textP.innerText = msg.text;
+        const emojiOnly = isMostlyEmoji(msg.text);
+        textP.className = emojiOnly
+          ? 'whitespace-pre-wrap leading-relaxed break-words text-3xl leading-9'
+          : 'whitespace-pre-wrap leading-relaxed break-words';
+        linkifyTextContainer(textP, msg.text);
         bubble.appendChild(textP);
       }
 
@@ -1888,11 +1978,14 @@
       };
       hoverBar.appendChild(moreBtn);
 
-      // Tap-on-bubble opens action sheet on touch devices
+      // Tap-on-bubble opens action sheet on touch devices (skipped while selecting text)
       bubble.style.cursor = 'pointer';
       bubble.onclick = (e) => {
         // Ignore if clicking on link, button, video or range inside bubble
         if (e.target.closest('button') || e.target.closest('video') || e.target.closest('input')) return;
+        // If the user just selected text, don't steal it with the action sheet
+        const sel = window.getSelection();
+        if (sel && sel.toString().trim()) return;
         openMessageActionSheet(msg, isSelf);
       };
 
@@ -1915,7 +2008,7 @@
       msgDiv.appendChild(contentWrap);
 
       messagesContainer.appendChild(msgDiv);
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      if (isSelf || isNearBottom()) scrollToBottom();
     }
 
     function triggerReply(msg) {
@@ -1960,8 +2053,7 @@
     document.getElementById('sheetCopyBtn').onclick = () => {
       const msg = messagesMap.get(actionSheetMessageId);
       if (msg && msg.text) {
-        navigator.clipboard.writeText(msg.text);
-        showToast('Message text copied');
+        copyTextToClipboard(msg.text, 'Message text copied');
       }
       closeActionSheet();
     };
@@ -1988,7 +2080,12 @@
     function updateMessageDOM(msg) {
       const textEl = document.getElementById('text-' + msg.id);
       if (textEl) {
-        textEl.innerText = msg.text;
+        textEl.innerHTML = '';
+        const emojiOnly = isMostlyEmoji(msg.text);
+        textEl.className = emojiOnly
+          ? 'whitespace-pre-wrap leading-relaxed break-words text-3xl leading-9'
+          : 'whitespace-pre-wrap leading-relaxed break-words';
+        linkifyTextContainer(textEl, msg.text);
       }
       const editedInd = document.getElementById('edited-indicator-' + msg.id);
       if (editedInd) {
@@ -2144,13 +2241,18 @@
     }
 
     // ==================== JOIN FLOW ====================
+    let joinInProgress = false;
     document.getElementById('joinForm').onsubmit = async (e) => {
       e.preventDefault();
+      if (joinInProgress) return;
       const pass = passInput.value.trim();
       if (!pass) return;
 
+      joinInProgress = true;
       currentPasskey = pass;
-      document.getElementById('joinBtn').innerHTML = `
+      const joinBtn = document.getElementById('joinBtn');
+      joinBtn.disabled = true;
+      joinBtn.innerHTML = `
         <svg class="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
         Unlocking Suite with Passkey...
       `;
@@ -2176,11 +2278,32 @@
       } catch (err) {
         console.error('Setup crypto error:', err);
         showToast('Key derivation error: ' + err.message);
+        joinInProgress = false;
+        document.getElementById('joinBtn').disabled = false;
         document.getElementById('joinBtn').innerText = 'Enter Room with Passkey';
       }
     };
 
     // ==================== REALTIME MQTT & WEBRTC SIGNALING ====================
+    function setConnectionState(state) {
+      const dot = document.getElementById('connectionDot');
+      const txt = document.getElementById('connectionStatusText');
+      if (!dot || !txt) return;
+      const map = {
+        connecting: { text: 'Connecting…', color: 'bg-amber-400' },
+        live: { text: 'Live Connected', color: 'bg-emerald-400' },
+        reconnecting: { text: 'Reconnecting…', color: 'bg-amber-400' },
+        offline: { text: 'Offline', color: 'bg-rose-500' }
+      };
+      const s = map[state] || map.connecting;
+      txt.innerText = s.text;
+      dot.className = 'w-2 h-2 rounded-full animate-pulse ' + s.color;
+    }
+
+    let joinAnnounced = false;
+    let brokerDead = false;
+    let lastReconnectAnnounce = 0;
+
     function initRealtimeClient() {
       // 1. BroadcastChannel for local tabs
       try {
@@ -2195,6 +2318,7 @@
       // 2. MQTT over WebSockets
       let brokerIdx = 0;
       function connectBroker(url) {
+        setConnectionState('connecting');
         try {
           if (mqttClient) {
             try { mqttClient.end(); } catch (e) {}
@@ -2208,23 +2332,51 @@
           });
 
           mqttClient.on('connect', () => {
-            document.getElementById('connectionStatusText').innerText = 'Live Connected';
+            brokerDead = false;
+            setConnectionState('live');
             mqttClient.subscribe(currentTopic, { qos: 0 });
 
-            publishEncrypted({
-              type: 'system',
-              text: `${currentUser.name} joined with passkey`,
-              timestamp: Date.now()
-            });
+            if (!joinAnnounced) {
+              joinAnnounced = true;
+              publishEncrypted({
+                type: 'system',
+                text: `${currentUser.name} joined with passkey`,
+                timestamp: Date.now()
+              });
+            } else if (Date.now() - lastReconnectAnnounce > 30000) {
+              lastReconnectAnnounce = Date.now();
+              publishEncrypted({
+                type: 'system',
+                text: `${currentUser.name} reconnected`,
+                timestamp: Date.now()
+              });
+            }
           });
 
           mqttClient.on('message', (_topic, message) => {
             handleIncomingEncrypted(message.toString());
           });
 
-          mqttClient.on('error', () => {
-            if (brokerIdx < MQTT_BROKERS.length - 1) {
+          mqttClient.on('offline', () => {
+            setConnectionState(brokerDead ? 'offline' : 'reconnecting');
+          });
+
+          mqttClient.on('close', () => {
+            if (!brokerDead && brokerIdx < MQTT_BROKERS.length - 1) {
+              brokerDead = true;
               brokerIdx++;
+              setConnectionState('reconnecting');
+              connectBroker(MQTT_BROKERS[brokerIdx]);
+            } else {
+              setConnectionState('offline');
+            }
+          });
+
+          mqttClient.on('error', () => {
+            if (!brokerDead && brokerIdx < MQTT_BROKERS.length - 1) {
+              brokerDead = true;
+              brokerIdx++;
+              setConnectionState('reconnecting');
               connectBroker(MQTT_BROKERS[brokerIdx]);
             }
           });
@@ -2274,6 +2426,7 @@
         } else if (data.type === 'unsend_message') {
           handleLocalUnsend(data.messageId);
         } else if (data.type === 'system') {
+          hideEmptyState();
           const sys = document.createElement('div');
           sys.className = 'text-center my-2 text-[11px] text-theme-dim font-mono';
           sys.innerText = `● ${data.text}`;
@@ -2466,6 +2619,11 @@
 
     // ==================== WEBRTC VOICE & VIDEO CALL LOGIC ====================
     async function startCall(type) {
+      // Guard against double-initiating while a call/offer is already active
+      if ((peerConnection && peerConnection.connectionState === 'connected') || pendingOfferData) {
+        showToast('A call is already in progress.');
+        return;
+      }
       currentCallType = type;
       try {
         localStream = await getMediaStream(type);
@@ -2954,6 +3112,7 @@
         }
 
         filePreviewBanner.classList.remove('hidden');
+        updateSendButtonState();
       };
       reader.readAsDataURL(file);
     }
@@ -2962,6 +3121,7 @@
       pendingFile = null;
       filePreviewBanner.classList.add('hidden');
       fileInput.value = '';
+      updateSendButtonState();
     };
 
     // Drag and Drop files onto chat
@@ -3005,9 +3165,20 @@
     };
 
     // ==================== SEND MESSAGE ====================
+    const messageInputEl = document.getElementById('messageInput');
+    const sendBtnEl = document.getElementById('sendBtn');
+
+    function autoGrowTextarea() {
+      messageInputEl.style.height = 'auto';
+      messageInputEl.style.height = Math.min(messageInputEl.scrollHeight, 132) + 'px';
+    }
+
+    // Auto-grow input on every keystroke/paste
+    messageInputEl.addEventListener('input', autoGrowTextarea);
+
     document.getElementById('messageForm').onsubmit = async (e) => {
       e.preventDefault();
-      const input = document.getElementById('messageInput');
+      const input = messageInputEl;
       const text = input.value.trim();
 
       if (!text && !pendingFile) return;
@@ -3029,20 +3200,36 @@
       filePreviewBanner.classList.add('hidden');
       replyingMessage = null;
       document.getElementById('replyBanner').classList.add('hidden');
+      updateSendButtonState();
 
       appendMessage(msgObj, true);
+      autoGrowTextarea();
       await publishEncrypted(msgObj);
     };
 
-    document.getElementById('messageInput').onkeydown = (e) => {
+    document.getElementById('sendBtn').addEventListener('click', () => {
+      document.getElementById('messageForm').requestSubmit();
+    });
+
+    // IME-safe: Enter sends, Shift+Enter inserts a newline.
+    messageInputEl.addEventListener('keydown', (e) => {
+      if (e.isComposing || e.keyCode === 229) return;
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         document.getElementById('messageForm').requestSubmit();
       }
-    };
+    });
+
+    function updateSendButtonState() {
+      const hasContent = messageInputEl.value.trim().length > 0 || pendingFile;
+      sendBtnEl.classList.toggle('opacity-40', !hasContent);
+      sendBtnEl.classList.toggle('pointer-events-none', !hasContent);
+    }
+    messageInputEl.addEventListener('input', updateSendButtonState);
+    updateSendButtonState();
 
     // Typing emission
-    document.getElementById('messageInput').oninput = () => {
+    messageInputEl.addEventListener('input', () => {
       publishEncrypted({
         type: 'typing',
         userId: currentUser.id,
@@ -3058,7 +3245,7 @@
           isTyping: false
         });
       }, 1500);
-    };
+    });
 
     document.getElementById('cancelReplyBtn').onclick = () => {
       replyingMessage = null;
@@ -3120,14 +3307,15 @@
 
     // Header Actions
     document.getElementById('headerPasskeyBtn').onclick = () => {
-      navigator.clipboard.writeText(currentPasskey);
-      showToast('Passkey copied: ' + currentPasskey);
+      copyTextToClipboard(currentPasskey, 'Passkey copied: ' + currentPasskey);
     };
 
-    document.getElementById('copyInviteBtn').onclick = () => {
+    const inviteLinkEl = document.getElementById('copyInviteBtn');
+    inviteLinkEl.onclick = () => {
       const url = window.location.origin + window.location.pathname + '#' + encodeURIComponent(currentPasskey);
-      navigator.clipboard.writeText(url);
-      showToast('Invite link copied! Share with friends.');
+      // Reflect the copied link locally so the user can also see/share it
+      document.getElementById('headerPasskeyText').innerText = currentPasskey;
+      copyTextToClipboard(url, 'Invite link copied! Share with friends.');
     };
 
     document.getElementById('soundToggleBtn').onclick = () => {
@@ -3148,6 +3336,24 @@
     document.getElementById('lightbox').onclick = () => {
       document.getElementById('lightbox').classList.add('hidden');
     };
+
+    // ==================== GLOBAL KEYBOARD & BACKDROP HANDLING ====================
+    // Escape closes every overlay; clicking the backdrop closes modals too.
+    ['messageActionSheet', 'editMessageModal', 'vaultModal', 'lightbox', 'inputEmojiPopover'].forEach((id) => {
+      const el = document.getElementById(id);
+      el.addEventListener('click', (e) => {
+        if (e.target === el) el.classList.add('hidden');
+      });
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      ['messageActionSheet', 'editMessageModal', 'vaultModal', 'lightbox', 'inputEmojiPopover'].forEach((id) => {
+        document.getElementById(id).classList.add('hidden');
+      });
+      document.getElementById('joinThemeDropdown').classList.add('hidden');
+      document.getElementById('headerThemeDropdown').classList.add('hidden');
+    });
   </script>
 </body>
 </html>

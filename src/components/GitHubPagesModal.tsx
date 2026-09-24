@@ -16,6 +16,9 @@ interface GitHubPagesModalProps {
   onClose: () => void;
 }
 
+// Resolve the standalone HTML relative to the current page (GitHub Pages subpaths work)
+const standaloneHref = new URL('index-github-pages.html', window.location.href).href;
+
 export const GitHubPagesModal: React.FC<GitHubPagesModalProps> = ({ isOpen, onClose }) => {
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -25,7 +28,7 @@ export const GitHubPagesModal: React.FC<GitHubPagesModalProps> = ({ isOpen, onCl
   const handleDownload = async () => {
     setDownloading(true);
     try {
-      const res = await fetch('/index-github-pages.html');
+      const res = await fetch(standaloneHref);
       const htmlText = await res.text();
       
       const blob = new Blob([htmlText], { type: 'text/html' });
@@ -46,7 +49,7 @@ export const GitHubPagesModal: React.FC<GitHubPagesModalProps> = ({ isOpen, onCl
 
   const handleCopyCode = async () => {
     try {
-      const res = await fetch('/index-github-pages.html');
+      const res = await fetch(standaloneHref);
       const htmlText = await res.text();
       await navigator.clipboard.writeText(htmlText);
       setCopied(true);
@@ -130,7 +133,7 @@ export const GitHubPagesModal: React.FC<GitHubPagesModalProps> = ({ isOpen, onCl
           {/* Direct link preview */}
           <div className="flex items-center justify-between text-xs pt-1">
             <a
-              href="/index-github-pages.html"
+              href={standaloneHref}
               target="_blank"
               rel="noopener noreferrer"
               className="text-indigo-400 hover:text-indigo-300 flex items-center gap-1 font-medium underline"
