@@ -1341,10 +1341,13 @@
     let mqttClient = null;
     let broadcastChannel = null;
     let currentUser = {
-      id: 'u-' + Math.random().toString(36).substring(2, 9),
+      id: localStorage.getItem('passchat_user_id') || 'u-' + Math.random().toString(36).substring(2, 9),
       name: localStorage.getItem('passchat_name') || 'Guest-' + Math.floor(100 + Math.random() * 900),
       avatar: localStorage.getItem('passchat_avatar') || '😀'
     };
+    if (!localStorage.getItem('passchat_user_id')) {
+      localStorage.setItem('passchat_user_id', currentUser.id);
+    }
     let soundEnabled = localStorage.getItem('passchat_sound') !== 'false';
     let replyingMessage = null;
     let pendingFile = null;
