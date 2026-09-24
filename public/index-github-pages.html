@@ -1600,6 +1600,7 @@
             // Clear message DOM feed
             messagesContainer.innerHTML = '';
             messagesMap.clear();
+            lastRenderedDay = null;
             updateVaultStats();
             showToast('Local vault history completely shredded.');
           };
@@ -1690,6 +1691,7 @@
             showToast(`Imported ${importedCount} messages. Reloading room feed...`);
             messagesContainer.innerHTML = '';
             messagesMap.clear();
+            lastRenderedDay = null;
             await loadVaultMessagesForCurrentRoom();
           };
         } catch (err) {
@@ -2291,6 +2293,11 @@
         // If the user just selected text, don't steal it with the action icons
         const sel = window.getSelection();
         if (sel && sel.toString().trim()) return;
+        // Touch devices: open the full message action sheet (more actions + extras like 😮/🎉).
+        if (window.matchMedia('(pointer: coarse)').matches) {
+          openMessageActionSheet(msg, isSelf);
+          return;
+        }
         const isOpen = hoverBar.classList.contains('force-show');
         dismissMessageToolbar();
         if (!isOpen) {
@@ -3031,15 +3038,7 @@
         localStream = await getMediaStream(type);
 
         document.getElementById('localVideo').srcObject = localStream;
-        if (type === 'voice') {
-          document.getElementById('localVideoContainer').classList.add('hidden');
-          document.getElementById('voiceCallAvatarStage').classList.remove('hidden');
-          document.getElementById('remoteVideo').classList.add('hidden');
-        } else {
-          document.getElementById('localVideoContainer').classList.remove('hidden');
-          document.getElementById('voiceCallAvatarStage').classList.add('hidden');
-          document.getElementById('remoteVideo').classList.remove('hidden');
-        }
+        updateCallVideoDisplay();
 
         peerConnection = new RTCPeerConnection(RTC_CONFIG);
 
@@ -3059,6 +3058,7 @@
           remoteStream = event.streams[0];
           document.getElementById('remoteVideo').srcObject = remoteStream;
           document.getElementById('remoteAudio').srcObject = remoteStream;
+          updateCallVideoDisplay();
         };
 
         peerConnection.onicecandidate = (event) => {
@@ -3115,15 +3115,7 @@
         localStream = await getMediaStream(type);
 
         document.getElementById('localVideo').srcObject = localStream;
-        if (type === 'voice') {
-          document.getElementById('localVideoContainer').classList.add('hidden');
-          document.getElementById('voiceCallAvatarStage').classList.remove('hidden');
-          document.getElementById('remoteVideo').classList.add('hidden');
-        } else {
-          document.getElementById('localVideoContainer').classList.remove('hidden');
-          document.getElementById('voiceCallAvatarStage').classList.add('hidden');
-          document.getElementById('remoteVideo').classList.remove('hidden');
-        }
+        updateCallVideoDisplay();
 
         peerConnection = new RTCPeerConnection(RTC_CONFIG);
 
@@ -3139,6 +3131,7 @@
           remoteStream = event.streams[0];
           document.getElementById('remoteVideo').srcObject = remoteStream;
           document.getElementById('remoteAudio').srcObject = remoteStream;
+          updateCallVideoDisplay();
         };
 
         peerConnection.onicecandidate = (event) => {
@@ -3249,6 +3242,17 @@
       document.getElementById('callOverlay').classList.remove('hidden');
       document.getElementById('callTypeName').innerText = type === 'video' ? 'WebRTC Video Call' : 'WebRTC Voice Call';
       document.getElementById('callPeerSubtitle').innerText = subtitle;
+    }
+
+    // Video visibility is driven by actual video track availability (so a screen
+    // share during a voice call reveals video), not just the call type.
+    function updateCallVideoDisplay() {
+      const hasRemoteVideo = !!(remoteStream && remoteStream.getVideoTracks().length > 0);
+      const showLocalVideo = currentCallType === 'video' || isScreenSharing;
+      const showRemoteVideo = currentCallType === 'video' || hasRemoteVideo;
+      document.getElementById('localVideoContainer').classList.toggle('hidden', !showLocalVideo);
+      document.getElementById('voiceCallAvatarStage').classList.toggle('hidden', showLocalVideo || showRemoteVideo);
+      document.getElementById('remoteVideo').classList.toggle('hidden', !showRemoteVideo);
     }
 
     function startCallTimer() {
@@ -3371,6 +3375,7 @@
           isScreenSharing = true;
           document.getElementById('screenShareIcon').className = 'w-5 h-5 text-emerald-400';
           showToast('Screen sharing started');
+          updateCallVideoDisplay();
 
           screenTrack.onended = () => {
             stopScreenSharing();
@@ -3389,15 +3394,21 @@
         screenStream.getTracks().forEach(t => t.stop());
         screenStream = null;
       }
-      if (localStream && peerConnection) {
-        const camTrack = localStream.getVideoTracks()[0];
+      if (peerConnection) {
         const sender = peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
-        if (sender && camTrack) {
-          sender.replaceTrack(camTrack);
+        const camTrack = localStream ? localStream.getVideoTracks()[0] : null;
+        if (sender) {
+          if (camTrack) {
+            sender.replaceTrack(camTrack);
+          } else {
+            // Voice call screen share: no camera to return to, drop the dead sender.
+            try { peerConnection.removeTrack(sender); } catch (e) {}
+          }
         }
         document.getElementById('localVideo').srcObject = localStream;
       }
       isScreenSharing = false;
+      updateCallVideoDisplay();
       document.getElementById('screenShareIcon').className = 'w-5 h-5 text-theme-muted';
       showToast('Screen sharing stopped');
     }
@@ -3483,7 +3494,7 @@
 
       if (mediaRecorder && mediaRecorder.state !== 'inactive') {
         mediaRecorder.onstop = () => {
-          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          const audioBlob = new Blob(audioChunks, { type: (mediaRecorder && mediaRecorder.mimeType) || 'audio/webm' });
           const reader = new FileReader();
           reader.onload = async (e) => {
             const base64Audio = e.target.result;
