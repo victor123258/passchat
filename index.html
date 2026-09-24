@@ -1,21 +1,828 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PassChat - 1-Page Passkey Chat for GitHub Pages</title>
-    <meta name="description" content="A single-page, real-time end-to-end encrypted chat app that joins using only a passkey. Ready to host statically on GitHub Pages with zero server setup." />
-    <meta property="og:title" content="PassChat - 1-Page Passkey Chat for GitHub Pages" />
-    <meta property="og:description" content="A single-page, real-time end-to-end encrypted chat app that joins using only a passkey. Ready to host statically on GitHub Pages with zero server setup." />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PassChat - 1-Page Passkey Chat for GitHub Pages</title>
+  <meta name="description" content="A single-page, real-time end-to-end encrypted chat app that joins using only a passkey. Ready to host statically on GitHub Pages with zero server setup.">
+  <meta property="og:title" content="PassChat - 1-Page Passkey Chat for GitHub Pages">
+  <meta property="og:description" content="A single-page, real-time end-to-end encrypted chat app that joins using only a passkey. Ready to host statically on GitHub Pages with zero server setup.">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN for zero-build static hosting on GitHub Pages -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- MQTT.js CDN for client-side serverless WebSockets -->
+  <script src="https://unpkg.com/mqtt@5.3.5/dist/mqtt.min.js"></script>
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #020617;
+      color: #f8fafc;
+      overflow-x: hidden;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.2); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.4); }
+    .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased">
 
+  <!-- ==================== JOIN SCREEN (ONLY PASSKEY TO JOIN) ==================== -->
+  <div id="joinScreen" class="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/60">
+    <div class="w-full max-w-md bg-slate-900/95 backdrop-blur-md border border-slate-800 rounded-3xl shadow-2xl p-6 sm:p-8">
+      
+      <!-- Brand Header -->
+      <div class="text-center mb-6">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-3">
+          <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          1-Page GitHub Pages Chat
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+          Pass<span class="text-indigo-400">Chat</span>
+        </h1>
+        <p class="mt-1.5 text-xs sm:text-sm text-slate-400">
+          Enter only a passkey to join. Anyone with the exact same passkey enters the same private encrypted room.
+        </p>
+      </div>
+
+      <!-- Join Form -->
+      <form id="joinForm" class="space-y-4">
+        
+        <!-- Passkey Input -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+              Passkey
+            </label>
+            <button type="button" id="togglePasskeyVisibility" class="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
+              <span id="passkeyToggleText">Reveal</span>
+            </button>
+          </div>
+          <div class="relative">
+            <input
+              type="password"
+              id="passkeyInput"
+              required
+              autofocus
+              placeholder="e.g. coffee, secret99, myteam"
+              class="w-full px-4 py-3.5 bg-slate-950/80 border border-slate-700 rounded-xl text-white font-mono text-base placeholder:font-sans placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors shadow-inner"
+            />
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1">
+            Zero registration or room ID needed. Your passkey encrypts and unlocks the room.
+          </p>
+        </div>
+
+        <!-- Optional Name & Avatar Customizer -->
+        <div class="p-3.5 rounded-2xl bg-slate-950/50 border border-slate-800">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Your Nickname</span>
+            <div id="avatarPicker" class="flex gap-1">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="currentAvatarDisplay" class="text-xl p-2 rounded-xl bg-slate-900 border border-slate-700 shrink-0">👤</span>
+            <input
+              type="text"
+              id="userNameInput"
+              maxlength="20"
+              placeholder="Your display name..."
+              class="flex-1 px-3.5 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500 font-medium"
+            />
+          </div>
+        </div>
+
+        <!-- Quick Demo Passkeys -->
+        <div class="pt-1">
+          <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">
+            Try Demo Passkeys:
+          </span>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" class="demo-key-btn p-2 rounded-xl border border-slate-800 bg-slate-950/40 hover:bg-slate-800 text-xs text-slate-300 transition-all text-center" data-key="lounge">
+              <div class="font-medium text-white">#lounge</div>
+              <div class="text-[10px] text-amber-400 font-mono">lounge</div>
+            </button>
+            <button type="button" class="demo-key-btn p-2 rounded-xl border border-slate-800 bg-slate-950/40 hover:bg-slate-800 text-xs text-slate-300 transition-all text-center" data-key="dev-squad">
+              <div class="font-medium text-white">#devs</div>
+              <div class="text-[10px] text-amber-400 font-mono">dev-squad</div>
+            </button>
+            <button type="button" class="demo-key-btn p-2 rounded-xl border border-slate-800 bg-slate-950/40 hover:bg-slate-800 text-xs text-slate-300 transition-all text-center" data-key="the-vault">
+              <div class="font-medium text-white">#vault</div>
+              <div class="text-[10px] text-amber-400 font-mono">the-vault</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Join Button -->
+        <button
+          type="submit"
+          id="joinBtn"
+          class="w-full mt-3 py-3.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/25 transition-all active:scale-[0.99] cursor-pointer"
+        >
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          Join with Passkey
+        </button>
+      </form>
+
+      <!-- Footer Info -->
+      <div class="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+        <span class="flex items-center gap-1">🔒 AES-256 E2E Encrypted</span>
+        <span class="text-indigo-400 font-medium">100% Static GitHub Pages</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== CHAT SCREEN ==================== -->
+  <div id="chatScreen" class="hidden h-screen w-full flex-col bg-slate-950 text-slate-100 font-sans overflow-hidden">
+    
+    <!-- Top Header -->
+    <header class="px-4 py-3 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 text-slate-100 flex items-center justify-between gap-3 z-30">
+      
+      <!-- Left: Passkey Badge -->
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="flex flex-col min-w-0">
+          <div class="flex items-center gap-2">
+            <h2 class="font-bold text-base sm:text-lg text-white truncate">
+              Passkey Room
+            </h2>
+            <button id="headerPasskeyBtn" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-mono font-medium transition-colors" title="Click to copy passkey">
+              <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+              <span id="headerPasskeyText">••••••</span>
+            </button>
+          </div>
+          <div class="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
+            <span class="inline-flex items-center gap-1 text-[11px] text-emerald-400">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span id="connectionStatusText">Live Connected</span>
+            </span>
+            <span class="text-slate-600">•</span>
+            <span class="text-[11px]">E2E Encrypted</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Actions -->
+      <div class="flex items-center gap-2">
+        <button id="copyInviteBtn" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer" title="Copy shareable link with passkey">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+          <span class="hidden sm:inline">Copy Invite</span>
+        </button>
+
+        <button id="soundToggleBtn" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" title="Toggle Sound">
+          <svg id="soundIcon" class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+        </button>
+
+        <button id="leaveBtn" class="p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors" title="Leave Chat">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Message Stream -->
+    <main id="messagesContainer" class="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-3 scroll-smooth">
+      <div class="py-6 text-center max-w-sm mx-auto">
+        <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto mb-2">
+          <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        </div>
+        <h3 class="text-sm font-semibold text-white">Private Passkey Channel</h3>
+        <p class="text-xs text-slate-400 mt-1">
+          Messages in this room are encrypted end-to-end using your passkey. Anyone with this passkey can chat here.
+        </p>
+      </div>
+      <!-- Messages appended here -->
+    </main>
+
+    <!-- Typing indicator -->
+    <div id="typingIndicator" class="hidden px-6 py-1.5 text-xs text-indigo-400 flex items-center gap-1.5">
+      <span class="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce"></span>
+      <span id="typingText">Someone is typing...</span>
+    </div>
+
+    <!-- Reply banner -->
+    <div id="replyBanner" class="hidden mx-4 mb-1 p-2 rounded-xl bg-slate-800/90 border border-slate-700 text-xs flex items-center justify-between">
+      <div class="flex items-center gap-2 truncate">
+        <span class="text-indigo-400 font-semibold" id="replyAuthor">Replying:</span>
+        <span class="text-slate-300 truncate" id="replySnippet">...</span>
+      </div>
+      <button id="cancelReplyBtn" class="text-slate-400 hover:text-white p-1">✕</button>
+    </div>
+
+    <!-- Image preview banner -->
+    <div id="imagePreviewBanner" class="hidden mx-4 mb-2 relative inline-block">
+      <img id="imagePreviewImg" class="h-20 w-auto rounded-xl border border-indigo-500/50 object-cover" />
+      <button id="removeImageBtn" class="absolute -top-1.5 -right-1.5 p-1 rounded-full bg-rose-600 text-white text-xs">✕</button>
+    </div>
+
+    <!-- Bottom Input Area -->
+    <div class="p-3 bg-slate-900 border-t border-slate-800">
+      <form id="messageForm" class="flex items-end gap-2">
+        <input type="file" id="fileInput" accept="image/*" class="hidden" />
+        
+        <button type="button" id="attachBtn" class="p-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer" title="Attach Image">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </button>
+
+        <div class="flex-1 bg-slate-950/80 border border-slate-700 focus-within:border-indigo-500 rounded-2xl transition-colors">
+          <textarea
+            id="messageInput"
+            rows="1"
+            placeholder="Type your message (or paste image)... Enter to send"
+            class="w-full py-2.5 px-3.5 bg-transparent text-white text-sm focus:outline-none resize-none max-h-32 placeholder:text-slate-500"
+          ></textarea>
+        </div>
+
+        <button
+          type="submit"
+          id="sendBtn"
+          class="p-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/25 transition-all active:scale-95 shrink-0 cursor-pointer"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Lightbox Modal -->
+  <div id="lightbox" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm cursor-pointer">
+    <img id="lightboxImg" class="max-h-[90vh] max-w-full rounded-2xl object-contain" />
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl bg-slate-800 text-white text-xs border border-slate-700 shadow-2xl transition-all pointer-events-none"></div>
+
+  <!-- ==================== REAL-TIME WEBSOCKET & CRYPTO SCRIPT ==================== -->
+  <script>
+    // Constants
+    const AVATARS = ['👤', '⚡', '🦊', '🐱', '🐼', '🚀', '🛡️', '💎'];
+    const MQTT_BROKERS = [
+      'wss://broker.emqx.io:8084/mqtt',
+      'wss://broker.hivemq.com:8884/mqtt'
+    ];
+
+    // State
+    let currentPasskey = '';
+    let currentTopic = '';
+    let cryptoKey = null;
+    let mqttClient = null;
+    let localWs = null;
+    let broadcastChannel = null;
+    let currentUser = {
+      id: 'u-' + Math.random().toString(36).substring(2, 9),
+      name: localStorage.getItem('passchat_name') || 'Guest-' + Math.floor(100 + Math.random() * 900),
+      avatar: localStorage.getItem('passchat_avatar') || '👤',
+      color: '#6366f1'
+    };
+    let soundEnabled = localStorage.getItem('passchat_sound') !== 'false';
+    let replyingMessage = null;
+    let pendingImage = null;
+    let typingTimer = null;
+    let messageReactions = new Map(); // msgId -> { emoji: count }
+
+    // Audio synthesizer via Web Audio API
+    let audioCtx = null;
+    function playBeep(freq1, freq2) {
+      if (!soundEnabled) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.setValueAtTime(freq1, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(freq2, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.2);
+      } catch (e) {}
+    }
+
+    // WebCrypto: Derive AES-GCM Key and SHA-256 Topic from Passkey
+    async function setupCrypto(passkey) {
+      const enc = new TextEncoder();
+      const rawKey = await crypto.subtle.importKey(
+        'raw',
+        enc.encode(passkey),
+        { name: 'PBKDF2' },
+        false,
+        ['deriveKey']
+      );
+      const salt = await crypto.subtle.digest('SHA-256', enc.encode('passchat_salt_' + passkey));
+      cryptoKey = await crypto.subtle.deriveKey(
+        {
+          name: 'PBKDF2',
+          salt: salt,
+          iterations: 100000,
+          hash: 'SHA-256'
+        },
+        rawKey,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['encrypt', 'decrypt']
+      );
+
+      // Deterministic topic hash (safe to share on public MQTT broker)
+      const topicBuffer = await crypto.subtle.digest('SHA-256', enc.encode('topic_' + passkey.trim().toLowerCase()));
+      const topicArray = Array.from(new Uint8Array(topicBuffer));
+      const topicHex = topicArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 24);
+      currentTopic = 'passchat/v1/' + topicHex;
+    }
+
+    async function encryptPayload(payloadObj) {
+      const jsonStr = JSON.stringify(payloadObj);
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const enc = new TextEncoder();
+      const ciphertext = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv },
+        cryptoKey,
+        enc.encode(jsonStr)
+      );
+      const combined = new Uint8Array(iv.length + ciphertext.byteLength);
+      combined.set(iv, 0);
+      combined.set(new Uint8Array(ciphertext), iv.length);
+      return btoa(String.fromCharCode(...combined));
+    }
+
+    async function decryptPayload(base64Payload) {
+      const combined = Uint8Array.from(atob(base64Payload), c => c.charCodeAt(0));
+      const iv = combined.slice(0, 12);
+      const data = combined.slice(12);
+      const decrypted = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv },
+        cryptoKey,
+        data
+      );
+      return JSON.parse(new TextDecoder().decode(decrypted));
+    }
+
+    // UI Helpers
+    function showToast(text) {
+      const t = document.getElementById('toast');
+      t.innerText = text;
+      t.classList.remove('hidden');
+      setTimeout(() => t.classList.add('hidden'), 2500);
+    }
+
+    // Render Avatars in Join Form
+    const avatarPicker = document.getElementById('avatarPicker');
+    const currentAvatarDisplay = document.getElementById('currentAvatarDisplay');
+    currentAvatarDisplay.innerText = currentUser.avatar;
+
+    AVATARS.forEach(av => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'p-1 rounded-lg hover:bg-slate-800 text-sm transition-all ' + (currentUser.avatar === av ? 'bg-indigo-600/40 ring-1 ring-indigo-500 scale-110' : '');
+      btn.innerText = av;
+      btn.onclick = () => {
+        currentUser.avatar = av;
+        currentAvatarDisplay.innerText = av;
+        localStorage.setItem('passchat_avatar', av);
+        document.querySelectorAll('#avatarPicker button').forEach(b => b.className = 'p-1 rounded-lg hover:bg-slate-800 text-sm transition-all');
+        btn.className = 'p-1 rounded-lg hover:bg-slate-800 text-sm transition-all bg-indigo-600/40 ring-1 ring-indigo-500 scale-110';
+      };
+      avatarPicker.appendChild(btn);
+    });
+
+    document.getElementById('userNameInput').value = currentUser.name;
+    document.getElementById('userNameInput').oninput = (e) => {
+      currentUser.name = e.target.value.trim() || 'Guest';
+      localStorage.setItem('passchat_name', currentUser.name);
+    };
+
+    // Toggle Passkey visibility
+    const passInput = document.getElementById('passkeyInput');
+    const togglePassBtn = document.getElementById('togglePasskeyVisibility');
+    const passToggleText = document.getElementById('passkeyToggleText');
+    togglePassBtn.onclick = () => {
+      if (passInput.type === 'password') {
+        passInput.type = 'text';
+        passToggleText.innerText = 'Hide';
+      } else {
+        passInput.type = 'password';
+        passToggleText.innerText = 'Reveal';
+      }
+    };
+
+    // Demo Keys
+    document.querySelectorAll('.demo-key-btn').forEach(btn => {
+      btn.onclick = () => {
+        passInput.value = btn.dataset.key;
+        passInput.focus();
+      };
+    });
+
+    // Check URL hash or search parameter for direct passkey link (e.g. #coffee or ?pass=coffee)
+    function checkUrlPasskey() {
+      const hash = window.location.hash.replace('#', '').trim();
+      if (hash) {
+        passInput.value = decodeURIComponent(hash);
+        return;
+      }
+      const params = new URLSearchParams(window.location.search);
+      const p = params.get('pass');
+      if (p) passInput.value = p.trim();
+    }
+    checkUrlPasskey();
+
+    // Message Rendering
+    const messagesContainer = document.getElementById('messagesContainer');
+
+    function appendMessage(msg, isSelf) {
+      // Check if already in container
+      if (document.getElementById('msg-' + msg.id)) return;
+
+      const msgDiv = document.createElement('div');
+      msgDiv.id = 'msg-' + msg.id;
+      msgDiv.className = `flex gap-2.5 my-2.5 ${isSelf ? 'flex-row-reverse' : 'flex-row'}`;
+
+      const avatarDiv = document.createElement('div');
+      avatarDiv.className = 'w-8 h-8 rounded-xl flex items-center justify-center text-sm border border-slate-700 bg-slate-900 shrink-0';
+      avatarDiv.innerText = msg.sender.avatar || '👤';
+
+      const contentWrap = document.createElement('div');
+      contentWrap.className = `max-w-[78%] flex flex-col ${isSelf ? 'items-end' : 'items-start'}`;
+
+      const meta = document.createElement('div');
+      meta.className = 'text-[10px] text-slate-400 mb-1 px-1 flex gap-1.5';
+      const timeStr = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      meta.innerHTML = `<span class="font-semibold text-slate-300">${isSelf ? 'You' : msg.sender.name}</span><span class="font-mono text-slate-500">${timeStr}</span>`;
+
+      const bubble = document.createElement('div');
+      bubble.className = `p-3 rounded-2xl text-sm shadow-md break-words ${isSelf ? 'bg-indigo-600 text-white rounded-tr-xs' : 'bg-slate-800 text-slate-100 border border-slate-700 rounded-tl-xs'}`;
+
+      // Reply reference
+      if (msg.replyTo) {
+        const replyBox = document.createElement('div');
+        replyBox.className = 'mb-1.5 p-1.5 rounded-lg text-xs bg-slate-950/40 border-l-2 border-indigo-400 opacity-90 truncate';
+        replyBox.innerText = `↪ ${msg.replyTo.senderName}: ${msg.replyTo.text}`;
+        bubble.appendChild(replyBox);
+      }
+
+      // Image attachment
+      if (msg.attachment && msg.attachment.url) {
+        const img = document.createElement('img');
+        img.src = msg.attachment.url;
+        img.className = 'max-h-60 rounded-xl mb-1.5 cursor-pointer object-cover';
+        img.onclick = () => {
+          document.getElementById('lightboxImg').src = msg.attachment.url;
+          document.getElementById('lightbox').classList.remove('hidden');
+        };
+        bubble.appendChild(img);
+      }
+
+      // Text body
+      if (msg.text) {
+        const textP = document.createElement('div');
+        textP.className = 'whitespace-pre-wrap';
+        textP.innerText = msg.text;
+        bubble.appendChild(textP);
+      }
+
+      // Actions / Reactions
+      const reactionWrap = document.createElement('div');
+      reactionWrap.className = 'flex items-center gap-1 mt-1';
+      reactionWrap.id = 'react-box-' + msg.id;
+
+      ['❤️', '👍', '🔥'].forEach(emo => {
+        const emoBtn = document.createElement('button');
+        emoBtn.className = 'text-[11px] px-1.5 py-0.5 rounded-md bg-slate-800/80 hover:bg-slate-700 border border-slate-700 cursor-pointer';
+        emoBtn.innerText = emo;
+        emoBtn.onclick = () => sendReaction(msg.id, emo);
+        reactionWrap.appendChild(emoBtn);
+      });
+
+      // Reply button
+      const replyBtn = document.createElement('button');
+      replyBtn.className = 'text-[10px] text-slate-400 hover:text-white px-1.5 py-0.5 rounded ml-1';
+      replyBtn.innerText = 'Reply';
+      replyBtn.onclick = () => {
+        replyingMessage = { id: msg.id, text: msg.text || 'Image', senderName: msg.sender.name };
+        document.getElementById('replyAuthor').innerText = `Replying to ${msg.sender.name}:`;
+        document.getElementById('replySnippet').innerText = msg.text || 'Image';
+        document.getElementById('replyBanner').classList.remove('hidden');
+        document.getElementById('messageInput').focus();
+      };
+      reactionWrap.appendChild(replyBtn);
+
+      contentWrap.appendChild(meta);
+      contentWrap.appendChild(bubble);
+      contentWrap.appendChild(reactionWrap);
+
+      msgDiv.appendChild(avatarDiv);
+      msgDiv.appendChild(contentWrap);
+
+      messagesContainer.appendChild(msgDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function sendReaction(messageId, emoji) {
+      publishEncrypted({
+        type: 'reaction',
+        messageId: messageId,
+        emoji: emoji,
+        userId: currentUser.id
+      });
+      applyLocalReaction(messageId, emoji);
+    }
+
+    function applyLocalReaction(messageId, emoji) {
+      const box = document.getElementById('react-box-' + messageId);
+      if (!box) return;
+      let badge = document.getElementById(`badge-${messageId}-${emoji}`);
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.id = `badge-${messageId}-${emoji}`;
+        badge.className = 'text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30';
+        badge.innerText = `${emoji} 1`;
+        box.appendChild(badge);
+      } else {
+        const parts = badge.innerText.split(' ');
+        const count = parseInt(parts[1] || '1', 10) + 1;
+        badge.innerText = `${emoji} ${count}`;
+      }
+    }
+
+    // Join Flow (ONLY passkey needed)
+    document.getElementById('joinForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const pass = passInput.value.trim();
+      if (!pass) return;
+
+      currentPasskey = pass;
+      document.getElementById('joinBtn').innerHTML = `
+        <svg class="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        Unlocking with Passkey...
+      `;
+
+      try {
+        await setupCrypto(pass);
+        initRealtimeClient();
+
+        document.getElementById('joinScreen').classList.add('hidden');
+        document.getElementById('chatScreen').classList.remove('hidden');
+        document.getElementById('chatScreen').classList.add('flex');
+
+        document.getElementById('headerPasskeyText').innerText = currentPasskey;
+        window.location.hash = encodeURIComponent(currentPasskey);
+
+        playBeep(440, 660);
+      } catch (err) {
+        console.error('Setup crypto error:', err);
+        showToast('Error deriving encryption key: ' + err.message);
+        document.getElementById('joinBtn').innerText = 'Join with Passkey';
+      }
+    };
+
+    // Real-Time Messaging using BroadcastChannel + Public MQTT WebSockets
+    function initRealtimeClient() {
+      // 1. Local BroadcastChannel for zero-latency multi-tab sync
+      try {
+        if ('BroadcastChannel' in window) {
+          broadcastChannel = new BroadcastChannel('passchat_' + currentTopic);
+          broadcastChannel.onmessage = (event) => {
+            handleIncomingEncrypted(event.data);
+          };
+        }
+      } catch (e) {}
+
+      // 2. Connect via MQTT
+      let brokerIdx = 0;
+      function connectBroker(url) {
+        try {
+          if (mqttClient) {
+            try { mqttClient.end(); } catch (e) {}
+          }
+
+          mqttClient = mqtt.connect(url, {
+            clientId: 'passchat_' + Math.random().toString(16).substring(2, 9),
+            clean: true,
+            connectTimeout: 5000,
+            reconnectPeriod: 3000,
+          });
+
+          mqttClient.on('connect', () => {
+            document.getElementById('connectionStatusText').innerText = 'Live Connected';
+            mqttClient.subscribe(currentTopic, { qos: 0 });
+
+            // Announce presence
+            publishEncrypted({
+              type: 'system',
+              text: `${currentUser.name} joined with passkey`,
+              timestamp: Date.now()
+            });
+          });
+
+          mqttClient.on('message', (_topic, message) => {
+            handleIncomingEncrypted(message.toString());
+          });
+
+          mqttClient.on('error', () => {
+            if (brokerIdx < MQTT_BROKERS.length - 1) {
+              brokerIdx++;
+              connectBroker(MQTT_BROKERS[brokerIdx]);
+            } else {
+              document.getElementById('connectionStatusText').innerText = 'Peer Connected';
+            }
+          });
+        } catch (err) {
+          console.warn('MQTT init notice:', err);
+        }
+      }
+
+      connectBroker(MQTT_BROKERS[0]);
+    }
+
+    async function publishEncrypted(payloadObj) {
+      if (!cryptoKey) return;
+      try {
+        const cipherBase64 = await encryptPayload(payloadObj);
+        
+        // Broadcast locally to tabs
+        if (broadcastChannel) {
+          broadcastChannel.postMessage(cipherBase64);
+        }
+
+        // Publish to MQTT topic
+        if (mqttClient && mqttClient.connected) {
+          mqttClient.publish(currentTopic, cipherBase64);
+        }
+      } catch (e) {
+        console.error('Publish error:', e);
+      }
+    }
+
+    async function handleIncomingEncrypted(cipherBase64) {
+      try {
+        const data = await decryptPayload(cipherBase64);
+        if (!data) return;
+
+        if (data.type === 'message') {
+          const isSelf = data.sender.id === currentUser.id;
+          appendMessage(data, isSelf);
+          if (!isSelf) playBeep(587, 880);
+        } else if (data.type === 'system') {
+          const sys = document.createElement('div');
+          sys.className = 'text-center my-2 text-[11px] text-slate-500';
+          sys.innerText = `🔔 ${data.text}`;
+          messagesContainer.appendChild(sys);
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        } else if (data.type === 'reaction') {
+          applyLocalReaction(data.messageId, data.emoji);
+        } else if (data.type === 'typing' && data.userId !== currentUser.id) {
+          const indicator = document.getElementById('typingIndicator');
+          if (data.isTyping) {
+            document.getElementById('typingText').innerText = `${data.userName} is typing...`;
+            indicator.classList.remove('hidden');
+          } else {
+            indicator.classList.add('hidden');
+          }
+        }
+      } catch (err) {
+        // Message could not be decrypted (different passkey or invalid format)
+      }
+    }
+
+    // Send Message
+    document.getElementById('messageForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const input = document.getElementById('messageInput');
+      const text = input.value.trim();
+
+      if (!text && !pendingImage) return;
+
+      const msgObj = {
+        type: 'message',
+        id: 'msg-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+        sender: currentUser,
+        text: text,
+        attachment: pendingImage ? { type: 'image', url: pendingImage } : null,
+        replyTo: replyingMessage,
+        timestamp: Date.now()
+      };
+
+      input.value = '';
+      input.style.height = 'auto';
+      pendingImage = null;
+      document.getElementById('imagePreviewBanner').classList.add('hidden');
+      replyingMessage = null;
+      document.getElementById('replyBanner').classList.add('hidden');
+
+      // Append immediately locally
+      appendMessage(msgObj, true);
+
+      // Broadcast encrypted
+      await publishEncrypted(msgObj);
+    };
+
+    // Keyboard enter in textarea
+    document.getElementById('messageInput').onkeydown = (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        document.getElementById('messageForm').requestSubmit();
+      }
+    };
+
+    // Typing emission
+    document.getElementById('messageInput').oninput = () => {
+      publishEncrypted({
+        type: 'typing',
+        userId: currentUser.id,
+        userName: currentUser.name,
+        isTyping: true
+      });
+      if (typingTimer) clearTimeout(typingTimer);
+      typingTimer = setTimeout(() => {
+        publishEncrypted({
+          type: 'typing',
+          userId: currentUser.id,
+          userName: currentUser.name,
+          isTyping: false
+        });
+      }, 1500);
+    };
+
+    // Image Upload & Paste
+    const fileInput = document.getElementById('fileInput');
+    document.getElementById('attachBtn').onclick = () => fileInput.click();
+    fileInput.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (re) => {
+          pendingImage = re.target.result;
+          document.getElementById('imagePreviewImg').src = pendingImage;
+          document.getElementById('imagePreviewBanner').classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
+    document.getElementById('messageInput').onpaste = (e) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          const file = items[i].getAsFile();
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (re) => {
+              pendingImage = re.target.result;
+              document.getElementById('imagePreviewImg').src = pendingImage;
+              document.getElementById('imagePreviewBanner').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+          }
+        }
+      }
+    };
+
+    document.getElementById('removeImageBtn').onclick = () => {
+      pendingImage = null;
+      document.getElementById('imagePreviewBanner').classList.add('hidden');
+    };
+
+    document.getElementById('cancelReplyBtn').onclick = () => {
+      replyingMessage = null;
+      document.getElementById('replyBanner').classList.add('hidden');
+    };
+
+    // Header Actions
+    document.getElementById('headerPasskeyBtn').onclick = () => {
+      navigator.clipboard.writeText(currentPasskey);
+      showToast('Passkey copied: ' + currentPasskey);
+    };
+
+    document.getElementById('copyInviteBtn').onclick = () => {
+      const url = window.location.origin + window.location.pathname + '#' + encodeURIComponent(currentPasskey);
+      navigator.clipboard.writeText(url);
+      showToast('Invite link copied! Share with friends.');
+    };
+
+    document.getElementById('soundToggleBtn').onclick = () => {
+      soundEnabled = !soundEnabled;
+      localStorage.setItem('passchat_sound', String(soundEnabled));
+      document.getElementById('soundIcon').className = soundEnabled ? 'w-4 h-4 text-indigo-400' : 'w-4 h-4 text-slate-600';
+      showToast(soundEnabled ? 'Sound notifications on' : 'Muted');
+    };
+
+    document.getElementById('leaveBtn').onclick = () => {
+      if (confirm('Leave this passkey room?')) {
+        if (mqttClient) mqttClient.end();
+        window.location.hash = '';
+        window.location.reload();
+      }
+    };
+
+    document.getElementById('lightbox').onclick = () => {
+      document.getElementById('lightbox').classList.add('hidden');
+    };
+  </script>
+</body>
+</html>

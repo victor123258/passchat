@@ -4,13 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PassChat - 1-Page Passkey Chat for GitHub Pages</title>
-  <meta name="description" content="Serverless, real-time encrypted chat requiring only a passkey to join. Hostable on GitHub Pages.">
+  <meta name="description" content="A single-page, real-time end-to-end encrypted chat app that joins using only a passkey. Ready to host statically on GitHub Pages with zero server setup.">
+  <meta property="og:title" content="PassChat - 1-Page Passkey Chat for GitHub Pages">
+  <meta property="og:description" content="A single-page, real-time end-to-end encrypted chat app that joins using only a passkey. Ready to host statically on GitHub Pages with zero server setup.">
+  <meta property="og:type" content="website">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <!-- Tailwind CSS via CDN for 1-page standalone usage -->
+  <!-- Tailwind CSS CDN for zero-build static hosting on GitHub Pages -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- MQTT.js for serverless browser-to-browser WebSockets -->
+  <!-- MQTT.js CDN for client-side serverless WebSockets -->
   <script src="https://unpkg.com/mqtt@5.3.5/dist/mqtt.min.js"></script>
   <style>
     body {
@@ -26,23 +29,23 @@
     .font-mono-code { font-family: 'JetBrains Mono', monospace; }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased">
 
   <!-- ==================== JOIN SCREEN (ONLY PASSKEY TO JOIN) ==================== -->
   <div id="joinScreen" class="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/60">
-    <div class="w-full max-w-md bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-3xl shadow-2xl p-6 sm:p-8">
+    <div class="w-full max-w-md bg-slate-900/95 backdrop-blur-md border border-slate-800 rounded-3xl shadow-2xl p-6 sm:p-8">
       
       <!-- Brand Header -->
       <div class="text-center mb-6">
-        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-3">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-3">
+          <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
           1-Page GitHub Pages Chat
         </div>
         <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
           Pass<span class="text-indigo-400">Chat</span>
         </h1>
-        <p class="mt-1 text-sm text-slate-400">
-          Enter only a passkey to join or create an instant encrypted room.
+        <p class="mt-1.5 text-xs sm:text-sm text-slate-400">
+          Enter only a passkey to join. Anyone with the exact same passkey enters the same private encrypted room.
         </p>
       </div>
 
@@ -65,12 +68,13 @@
               type="password"
               id="passkeyInput"
               required
+              autofocus
               placeholder="e.g. coffee, secret99, myteam"
-              class="w-full px-4 py-3.5 bg-slate-950/80 border border-slate-700 rounded-xl text-white font-mono text-sm placeholder:font-sans placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+              class="w-full px-4 py-3.5 bg-slate-950/80 border border-slate-700 rounded-xl text-white font-mono text-base placeholder:font-sans placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors shadow-inner"
             />
           </div>
           <p class="text-[11px] text-slate-400 mt-1">
-            Everyone who enters this exact passkey connects to the same private room.
+            Zero registration or room ID needed. Your passkey encrypts and unlocks the room.
           </p>
         </div>
 
@@ -82,18 +86,21 @@
               <!-- Rendered via JS -->
             </div>
           </div>
-          <input
-            type="text"
-            id="userNameInput"
-            maxlength="20"
-            placeholder="Your display name..."
-            class="w-full px-3.5 py-2 bg-slate-900 border border-slate-700/80 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500 font-medium"
-          />
+          <div class="flex items-center gap-2">
+            <span id="currentAvatarDisplay" class="text-xl p-2 rounded-xl bg-slate-900 border border-slate-700 shrink-0">👤</span>
+            <input
+              type="text"
+              id="userNameInput"
+              maxlength="20"
+              placeholder="Your display name..."
+              class="flex-1 px-3.5 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500 font-medium"
+            />
+          </div>
         </div>
 
         <!-- Quick Demo Passkeys -->
         <div class="pt-1">
-          <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-2">
+          <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">
             Try Demo Passkeys:
           </span>
           <div class="grid grid-cols-3 gap-2">
@@ -116,7 +123,7 @@
         <button
           type="submit"
           id="joinBtn"
-          class="w-full mt-4 py-3.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/25 transition-all active:scale-[0.99] cursor-pointer"
+          class="w-full mt-3 py-3.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/25 transition-all active:scale-[0.99] cursor-pointer"
         >
           <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
           Join with Passkey
@@ -125,8 +132,8 @@
 
       <!-- Footer Info -->
       <div class="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
-        <span>🔒 AES-256 E2E Encrypted</span>
-        <span>Zero Backend Needed</span>
+        <span class="flex items-center gap-1">🔒 AES-256 E2E Encrypted</span>
+        <span class="text-indigo-400 font-medium">100% Static GitHub Pages</span>
       </div>
     </div>
   </div>
@@ -162,7 +169,7 @@
 
       <!-- Right Actions -->
       <div class="flex items-center gap-2">
-        <button id="copyInviteBtn" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium flex items-center gap-1.5 shadow-sm transition-colors" title="Copy shareable link with passkey">
+        <button id="copyInviteBtn" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer" title="Copy shareable link with passkey">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
           <span class="hidden sm:inline">Copy Invite</span>
         </button>
@@ -185,7 +192,7 @@
         </div>
         <h3 class="text-sm font-semibold text-white">Private Passkey Channel</h3>
         <p class="text-xs text-slate-400 mt-1">
-          Messages in this room are encrypted end-to-end using your passkey.
+          Messages in this room are encrypted end-to-end using your passkey. Anyone with this passkey can chat here.
         </p>
       </div>
       <!-- Messages appended here -->
@@ -217,7 +224,7 @@
       <form id="messageForm" class="flex items-end gap-2">
         <input type="file" id="fileInput" accept="image/*" class="hidden" />
         
-        <button type="button" id="attachBtn" class="p-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" title="Attach Image">
+        <button type="button" id="attachBtn" class="p-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer" title="Attach Image">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
         </button>
 
@@ -233,7 +240,7 @@
         <button
           type="submit"
           id="sendBtn"
-          class="p-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/25 transition-all active:scale-95 shrink-0"
+          class="p-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/25 transition-all active:scale-95 shrink-0 cursor-pointer"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
         </button>
@@ -247,20 +254,23 @@
   </div>
 
   <!-- Toast Notification -->
-  <div id="toast" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl bg-slate-800 text-white text-xs border border-slate-700 shadow-2xl transition-all"></div>
+  <div id="toast" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl bg-slate-800 text-white text-xs border border-slate-700 shadow-2xl transition-all pointer-events-none"></div>
 
-  <!-- ==================== LOGIC & REAL-TIME CRYPTO SCRIPT ==================== -->
+  <!-- ==================== REAL-TIME WEBSOCKET & CRYPTO SCRIPT ==================== -->
   <script>
-    // Configuration
+    // Constants
     const AVATARS = ['👤', '⚡', '🦊', '🐱', '🐼', '🚀', '🛡️', '💎'];
-    const MQTT_BROKER = 'wss://broker.emqx.io:8084/mqtt';
-    const FALLBACK_BROKER = 'wss://broker.hivemq.com:8884/mqtt';
+    const MQTT_BROKERS = [
+      'wss://broker.emqx.io:8084/mqtt',
+      'wss://broker.hivemq.com:8884/mqtt'
+    ];
 
     // State
     let currentPasskey = '';
     let currentTopic = '';
     let cryptoKey = null;
     let mqttClient = null;
+    let localWs = null;
     let broadcastChannel = null;
     let currentUser = {
       id: 'u-' + Math.random().toString(36).substring(2, 9),
@@ -268,10 +278,11 @@
       avatar: localStorage.getItem('passchat_avatar') || '👤',
       color: '#6366f1'
     };
-    let soundEnabled = true;
+    let soundEnabled = localStorage.getItem('passchat_sound') !== 'false';
     let replyingMessage = null;
     let pendingImage = null;
     let typingTimer = null;
+    let messageReactions = new Map(); // msgId -> { emoji: count }
 
     // Audio synthesizer via Web Audio API
     let audioCtx = null;
@@ -361,6 +372,9 @@
 
     // Render Avatars in Join Form
     const avatarPicker = document.getElementById('avatarPicker');
+    const currentAvatarDisplay = document.getElementById('currentAvatarDisplay');
+    currentAvatarDisplay.innerText = currentUser.avatar;
+
     AVATARS.forEach(av => {
       const btn = document.createElement('button');
       btn.type = 'button';
@@ -368,6 +382,7 @@
       btn.innerText = av;
       btn.onclick = () => {
         currentUser.avatar = av;
+        currentAvatarDisplay.innerText = av;
         localStorage.setItem('passchat_avatar', av);
         document.querySelectorAll('#avatarPicker button').forEach(b => b.className = 'p-1 rounded-lg hover:bg-slate-800 text-sm transition-all');
         btn.className = 'p-1 rounded-lg hover:bg-slate-800 text-sm transition-all bg-indigo-600/40 ring-1 ring-indigo-500 scale-110';
@@ -403,12 +418,16 @@
       };
     });
 
-    // Check URL hash for direct passkey link (e.g. #coffee)
+    // Check URL hash or search parameter for direct passkey link (e.g. #coffee or ?pass=coffee)
     function checkUrlPasskey() {
       const hash = window.location.hash.replace('#', '').trim();
       if (hash) {
         passInput.value = decodeURIComponent(hash);
+        return;
       }
+      const params = new URLSearchParams(window.location.search);
+      const p = params.get('pass');
+      if (p) passInput.value = p.trim();
     }
     checkUrlPasskey();
 
@@ -416,7 +435,11 @@
     const messagesContainer = document.getElementById('messagesContainer');
 
     function appendMessage(msg, isSelf) {
+      // Check if already in container
+      if (document.getElementById('msg-' + msg.id)) return;
+
       const msgDiv = document.createElement('div');
+      msgDiv.id = 'msg-' + msg.id;
       msgDiv.className = `flex gap-2.5 my-2.5 ${isSelf ? 'flex-row-reverse' : 'flex-row'}`;
 
       const avatarDiv = document.createElement('div');
@@ -462,16 +485,31 @@
         bubble.appendChild(textP);
       }
 
-      // Reaction pill container
+      // Actions / Reactions
       const reactionWrap = document.createElement('div');
-      reactionWrap.className = 'flex gap-1 mt-1';
+      reactionWrap.className = 'flex items-center gap-1 mt-1';
+      reactionWrap.id = 'react-box-' + msg.id;
+
       ['❤️', '👍', '🔥'].forEach(emo => {
         const emoBtn = document.createElement('button');
-        emoBtn.className = 'text-[11px] px-1.5 py-0.5 rounded-md bg-slate-800/80 hover:bg-slate-700 border border-slate-700';
+        emoBtn.className = 'text-[11px] px-1.5 py-0.5 rounded-md bg-slate-800/80 hover:bg-slate-700 border border-slate-700 cursor-pointer';
         emoBtn.innerText = emo;
         emoBtn.onclick = () => sendReaction(msg.id, emo);
         reactionWrap.appendChild(emoBtn);
       });
+
+      // Reply button
+      const replyBtn = document.createElement('button');
+      replyBtn.className = 'text-[10px] text-slate-400 hover:text-white px-1.5 py-0.5 rounded ml-1';
+      replyBtn.innerText = 'Reply';
+      replyBtn.onclick = () => {
+        replyingMessage = { id: msg.id, text: msg.text || 'Image', senderName: msg.sender.name };
+        document.getElementById('replyAuthor').innerText = `Replying to ${msg.sender.name}:`;
+        document.getElementById('replySnippet').innerText = msg.text || 'Image';
+        document.getElementById('replyBanner').classList.remove('hidden');
+        document.getElementById('messageInput').focus();
+      };
+      reactionWrap.appendChild(replyBtn);
 
       contentWrap.appendChild(meta);
       contentWrap.appendChild(bubble);
@@ -484,71 +522,121 @@
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
-    // Join Flow
+    function sendReaction(messageId, emoji) {
+      publishEncrypted({
+        type: 'reaction',
+        messageId: messageId,
+        emoji: emoji,
+        userId: currentUser.id
+      });
+      applyLocalReaction(messageId, emoji);
+    }
+
+    function applyLocalReaction(messageId, emoji) {
+      const box = document.getElementById('react-box-' + messageId);
+      if (!box) return;
+      let badge = document.getElementById(`badge-${messageId}-${emoji}`);
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.id = `badge-${messageId}-${emoji}`;
+        badge.className = 'text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30';
+        badge.innerText = `${emoji} 1`;
+        box.appendChild(badge);
+      } else {
+        const parts = badge.innerText.split(' ');
+        const count = parseInt(parts[1] || '1', 10) + 1;
+        badge.innerText = `${emoji} ${count}`;
+      }
+    }
+
+    // Join Flow (ONLY passkey needed)
     document.getElementById('joinForm').onsubmit = async (e) => {
       e.preventDefault();
       const pass = passInput.value.trim();
       if (!pass) return;
 
       currentPasskey = pass;
-      document.getElementById('joinBtn').innerText = 'Deriving Keys & Connecting...';
+      document.getElementById('joinBtn').innerHTML = `
+        <svg class="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        Unlocking with Passkey...
+      `;
 
-      await setupCrypto(pass);
+      try {
+        await setupCrypto(pass);
+        initRealtimeClient();
 
-      // Connect MQTT
-      initRealtimeClient();
+        document.getElementById('joinScreen').classList.add('hidden');
+        document.getElementById('chatScreen').classList.remove('hidden');
+        document.getElementById('chatScreen').classList.add('flex');
 
-      // Show Chat
-      document.getElementById('joinScreen').classList.add('hidden');
-      document.getElementById('chatScreen').classList.remove('hidden');
-      document.getElementById('chatScreen').classList.add('flex');
+        document.getElementById('headerPasskeyText').innerText = currentPasskey;
+        window.location.hash = encodeURIComponent(currentPasskey);
 
-      document.getElementById('headerPasskeyText').innerText = currentPasskey;
-      window.location.hash = encodeURIComponent(currentPasskey);
-
-      playBeep(440, 660);
+        playBeep(440, 660);
+      } catch (err) {
+        console.error('Setup crypto error:', err);
+        showToast('Error deriving encryption key: ' + err.message);
+        document.getElementById('joinBtn').innerText = 'Join with Passkey';
+      }
     };
 
-    // Real-Time Messaging using MQTT + BroadcastChannel
+    // Real-Time Messaging using BroadcastChannel + Public MQTT WebSockets
     function initRealtimeClient() {
-      // 1. BroadcastChannel for instant local multi-tab sync
+      // 1. Local BroadcastChannel for zero-latency multi-tab sync
       try {
-        broadcastChannel = new BroadcastChannel('passchat_' + currentTopic);
-        broadcastChannel.onmessage = async (event) => {
-          handleIncomingEncrypted(event.data);
-        };
+        if ('BroadcastChannel' in window) {
+          broadcastChannel = new BroadcastChannel('passchat_' + currentTopic);
+          broadcastChannel.onmessage = (event) => {
+            handleIncomingEncrypted(event.data);
+          };
+        }
       } catch (e) {}
 
-      // 2. MQTT over WebSocket connection
-      try {
-        mqttClient = mqtt.connect(MQTT_BROKER, {
-          clientId: 'passchat_' + Math.random().toString(16).substring(2, 8),
-          clean: true,
-          reconnectPeriod: 2500,
-        });
+      // 2. Connect via MQTT
+      let brokerIdx = 0;
+      function connectBroker(url) {
+        try {
+          if (mqttClient) {
+            try { mqttClient.end(); } catch (e) {}
+          }
 
-        mqttClient.on('connect', () => {
-          document.getElementById('connectionStatusText').innerText = 'Live Connected';
-          mqttClient.subscribe(currentTopic, { qos: 0 });
-          
-          // Broadcast join announcement
-          publishEncrypted({
-            type: 'system',
-            text: `${currentUser.name} joined with passkey`,
-            timestamp: Date.now()
+          mqttClient = mqtt.connect(url, {
+            clientId: 'passchat_' + Math.random().toString(16).substring(2, 9),
+            clean: true,
+            connectTimeout: 5000,
+            reconnectPeriod: 3000,
           });
-        });
 
-        mqttClient.on('message', (_topic, message) => {
-          handleIncomingEncrypted(message.toString());
-        });
+          mqttClient.on('connect', () => {
+            document.getElementById('connectionStatusText').innerText = 'Live Connected';
+            mqttClient.subscribe(currentTopic, { qos: 0 });
 
-        mqttClient.on('error', () => {
-          document.getElementById('connectionStatusText').innerText = 'Local Peer Mode';
-        });
-      } catch (err) {
-        console.warn('MQTT fallback:', err);
+            // Announce presence
+            publishEncrypted({
+              type: 'system',
+              text: `${currentUser.name} joined with passkey`,
+              timestamp: Date.now()
+            });
+          });
+
+          mqttClient.on('message', (_topic, message) => {
+            handleIncomingEncrypted(message.toString());
+          });
+
+          mqttClient.on('error', () => {
+            if (brokerIdx < MQTT_BROKERS.length - 1) {
+              brokerIdx++;
+              connectBroker(MQTT_BROKERS[brokerIdx]);
+            } else {
+              document.getElementById('connectionStatusText').innerText = 'Peer Connected';
+            }
+          });
+        } catch (err) {
+          console.warn('MQTT init notice:', err);
+        }
       }
+
+      connectBroker(MQTT_BROKERS[0]);
     }
 
     async function publishEncrypted(payloadObj) {
@@ -556,7 +644,7 @@
       try {
         const cipherBase64 = await encryptPayload(payloadObj);
         
-        // Broadcast locally
+        // Broadcast locally to tabs
         if (broadcastChannel) {
           broadcastChannel.postMessage(cipherBase64);
         }
@@ -585,6 +673,8 @@
           sys.innerText = `🔔 ${data.text}`;
           messagesContainer.appendChild(sys);
           messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        } else if (data.type === 'reaction') {
+          applyLocalReaction(data.messageId, data.emoji);
         } else if (data.type === 'typing' && data.userId !== currentUser.id) {
           const indicator = document.getElementById('typingIndicator');
           if (data.isTyping) {
@@ -595,7 +685,7 @@
           }
         }
       } catch (err) {
-        // Message could not be decrypted (different passkey / corrupt payload)
+        // Message could not be decrypted (different passkey or invalid format)
       }
     }
 
@@ -624,7 +714,19 @@
       replyingMessage = null;
       document.getElementById('replyBanner').classList.add('hidden');
 
+      // Append immediately locally
+      appendMessage(msgObj, true);
+
+      // Broadcast encrypted
       await publishEncrypted(msgObj);
+    };
+
+    // Keyboard enter in textarea
+    document.getElementById('messageInput').onkeydown = (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        document.getElementById('messageForm').requestSubmit();
+      }
     };
 
     // Typing emission
@@ -686,6 +788,11 @@
       document.getElementById('imagePreviewBanner').classList.add('hidden');
     };
 
+    document.getElementById('cancelReplyBtn').onclick = () => {
+      replyingMessage = null;
+      document.getElementById('replyBanner').classList.add('hidden');
+    };
+
     // Header Actions
     document.getElementById('headerPasskeyBtn').onclick = () => {
       navigator.clipboard.writeText(currentPasskey);
@@ -695,17 +802,18 @@
     document.getElementById('copyInviteBtn').onclick = () => {
       const url = window.location.origin + window.location.pathname + '#' + encodeURIComponent(currentPasskey);
       navigator.clipboard.writeText(url);
-      showToast('Invite link copied! Share it with friends.');
+      showToast('Invite link copied! Share with friends.');
     };
 
     document.getElementById('soundToggleBtn').onclick = () => {
       soundEnabled = !soundEnabled;
+      localStorage.setItem('passchat_sound', String(soundEnabled));
       document.getElementById('soundIcon').className = soundEnabled ? 'w-4 h-4 text-indigo-400' : 'w-4 h-4 text-slate-600';
       showToast(soundEnabled ? 'Sound notifications on' : 'Muted');
     };
 
     document.getElementById('leaveBtn').onclick = () => {
-      if (confirm('Leave this passkey chat?')) {
+      if (confirm('Leave this passkey room?')) {
         if (mqttClient) mqttClient.end();
         window.location.hash = '';
         window.location.reload();
