@@ -1366,6 +1366,8 @@
     let callTimerInterval = null;
     let callSeconds = 0;
     let pendingOfferData = null;
+    let callPeerId = null;    // id of the peer we are wired up to (set on answer/accept)
+    let pendingIceCandidates = [];
     let isMicMuted = false;
     let isCameraOff = false;
     let isScreenSharing = false;
@@ -3014,8 +3016,13 @@
 
     // ==================== WEBRTC VOICE & VIDEO CALL LOGIC ====================
     async function startCall(type) {
+      // If a call is already connected (e.g. minimized), just reopen the overlay.
+      if (peerConnection && peerConnection.connectionState === 'connected') {
+        document.getElementById('callOverlay').classList.remove('hidden');
+        return;
+      }
       // Guard against double-initiating while a call/offer is already active
-      if ((peerConnection && peerConnection.connectionState === 'connected') || pendingOfferData) {
+      if (peerConnection || pendingOfferData) {
         showToast('A call is already in progress.');
         return;
       }
@@ -3084,6 +3091,10 @@
     }
 
     function handleIncomingCallOffer(data) {
+      // Guard: ignore a new offer if we already have a pending one or are in an active call.
+      if (pendingOfferData || (peerConnection && peerConnection.connectionState !== 'closed')) {
+        return;
+      }
       pendingOfferData = data;
       playRingtone();
 
@@ -3141,8 +3152,10 @@
         };
 
         await peerConnection.setRemoteDescription(new RTCSessionDescription(pendingOfferData.sdp));
+        callPeerId = pendingOfferData.senderId;
         const answer = await peerConnection.createAnswer();
         await peerConnection.setLocalDescription(answer);
+        flushPendingIceCandidates();
 
         publishEncrypted({
           type: 'call_answer',
@@ -3160,6 +3173,12 @@
       } catch (err) {
         console.error('Accept call media error:', err);
         showToast('Could not access microphone/camera.');
+        // Reset local call state so the user is not stuck with no overlay.
+        if (peerConnection) { try { peerConnection.close(); } catch (e) {} peerConnection = null; }
+        if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+        pendingOfferData = null;
+        callPeerId = null;
+        document.getElementById('incomingCallModal').classList.add('hidden');
       }
     };
 
@@ -3178,6 +3197,8 @@
     async function handleIncomingCallAnswer(data) {
       if (peerConnection) {
         await peerConnection.setRemoteDescription(new RTCSessionDescription(data.sdp));
+        callPeerId = data.senderId;
+        flushPendingIceCandidates();
         const peerName = (data.answerer && data.answerer.name) || 'peer';
         document.getElementById('callPeerSubtitle').innerText = 'Connected with ' + peerName;
         document.getElementById('voiceCallPeerName').innerText = peerName;
@@ -3186,16 +3207,42 @@
     }
 
     async function handleIncomingIceCandidate(data) {
-      if (peerConnection && peerConnection.remoteDescription) {
-        try {
-          await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-        } catch (e) {}
+      if (!peerConnection) return;
+      if (!peerConnection.remoteDescription) {
+        // The remote offer/answer hasn't been applied yet; buffer until it is.
+        pendingIceCandidates.push(data.candidate);
+        return;
       }
+      try {
+        await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+      } catch (e) {}
     }
 
-    function handleCallEndedByPeer() {
+    function flushPendingIceCandidates() {
+      if (!peerConnection || !peerConnection.remoteDescription) return;
+      const buffered = pendingIceCandidates.splice(0, pendingIceCandidates.length);
+      buffered.forEach(candidate => {
+        try {
+          peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (e) {}
+      });
+    }
+
+    function handleCallEndedByPeer(data) {
+      // Only act on signals from the peer we are actually in a call with,
+      // or that is ringing us (call declined / caller gave up before answer).
+      if (pendingOfferData && data.senderId === pendingOfferData.senderId) {
+        // The caller ended/hung up before we answered.
+        pendingOfferData = null;
+        document.getElementById('incomingCallModal').classList.add('hidden');
+        showToast(data.type === 'call_declined' ? 'Call declined.' : 'Caller cancelled the call.');
+        return;
+      }
+      if (!callPeerId || data.senderId !== callPeerId) {
+        return; // unrelated peer's signal, ignore
+      }
       endCall(false);
-      showToast('Call ended by peer.');
+      showToast(data.type === 'call_declined' ? 'Call declined by peer.' : 'Call ended by peer.');
     }
 
     function openCallOverlay(type, subtitle) {
@@ -3244,8 +3291,12 @@
         peerConnection.close();
         peerConnection = null;
       }
+      pendingOfferData = null;
+      callPeerId = null;
+      pendingIceCandidates = [];
 
       document.getElementById('callOverlay').classList.add('hidden');
+      document.getElementById('incomingCallModal').classList.add('hidden');
       document.getElementById('localVideo').srcObject = null;
       document.getElementById('remoteVideo').srcObject = null;
       document.getElementById('remoteAudio').srcObject = null;
