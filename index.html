@@ -612,9 +612,7 @@
         <div class="p-3.5 rounded-2xl bg-theme-elevated/60 border border-theme-subtle">
           <div class="flex items-center justify-between mb-2">
             <span class="text-xs font-semibold text-theme-muted uppercase tracking-wider">Your Nickname</span>
-            <div id="avatarPicker" class="flex flex-wrap gap-1 justify-end">
-              <!-- Rendered via JS -->
-            </div>
+            <div id="avatarPicker" class="flex flex-nowrap gap-1 overflow-x-auto max-w-[300px] justify-end pb-0.5"></div>
           </div>
           <div class="flex items-center gap-2">
             <span id="currentAvatarDisplay" class="text-xl p-2 rounded-xl bg-theme-surface border border-theme-subtle shrink-0">😀</span>
@@ -1323,6 +1321,7 @@
     // Configuration
     const AVATARS = ['😀', '😄', '😊', '😎', '😍', '🥳', '😜', '🤓', '👤', '👩', '👨', '🧑', '👦', '👧', '🧔', '👳', '👮', '🕵️', '💂', '👷', '🤴', '👸', '🧙', '🧚', '🧛', '🧜', '🧝', '🧞', '🧟', '🦸', '🦹', '🤶', '🎅'];
     const FACE_REACTIONS = ['😂', '🤣', '😊', '😍', '🥰', '😘', '😄', '😀', '🤩', '🥳', '😎', '🤗', '😁', '😅', '😆', '😉', '🙃', '😌', '😜', '🤪', '😝', '😴', '🤤', '😢', '😭', '😱', '😨', '😰', '😥', '😡', '😠', '🤬', '😤', '😔', '😞', '😖', '😩', '🤔', '🤨', '🧐', '🙄', '😮', '😲', '😳', '🥺', '😇', '🤠', '🤓', '😹', '😻', '🙈', '🙉', '🙊', '🤯', '😵', '🤢', '🤮', '🤧', '🥵', '🥶', '🤒', '🤕', '🤑', '🤡', '👻', '💀', '🤖', '🎃'];
+    const QUICK_REACTIONS = ['😂', '❤️', '👍', '🔥', '😍'];
     const MQTT_BROKERS = [
       'wss://broker.emqx.io:8084/mqtt',
       'wss://broker.hivemq.com:8884/mqtt'
@@ -1863,14 +1862,15 @@
     AVATARS.forEach(av => {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'p-1 rounded-lg hover:bg-theme-surface text-sm transition-all cursor-pointer ' + (currentUser.avatar === av ? 'ring-1 ring-[var(--accent)] scale-110 bg-theme-surface' : '');
+      btn.className = 'p-1 rounded-lg hover:bg-theme-surface text-sm transition-all cursor-pointer shrink-0 ' + (currentUser.avatar === av ? 'ring-1 ring-[var(--accent)] scale-110 bg-theme-surface' : '');
       btn.innerText = av;
       btn.onclick = () => {
         currentUser.avatar = av;
         currentAvatarDisplay.innerText = av;
         localStorage.setItem('passchat_avatar', av);
-        document.querySelectorAll('#avatarPicker button').forEach(b => b.className = 'p-1 rounded-lg hover:bg-theme-surface text-sm transition-all cursor-pointer');
-        btn.className = 'p-1 rounded-lg hover:bg-theme-surface text-sm transition-all cursor-pointer ring-1 ring-[var(--accent)] scale-110 bg-theme-surface';
+        document.querySelectorAll('#avatarPicker button').forEach(b => b.className = 'p-1 rounded-lg hover:bg-theme-surface text-sm transition-all cursor-pointer shrink-0');
+        btn.className = 'p-1 rounded-lg hover:bg-theme-surface text-sm transition-all cursor-pointer shrink-0 ring-1 ring-[var(--accent)] scale-110 bg-theme-surface';
+        btn.scrollIntoView({ inline: 'nearest', block: 'nearest' });
       };
       avatarPicker.appendChild(btn);
     });
@@ -2204,10 +2204,10 @@
 
       // Floating action bar with icons (revealed on hover/tap)
       const hoverBar = document.createElement('div');
-      hoverBar.className = `msg-hover-actions absolute -top-4 z-30 flex items-center gap-0.5 flex-wrap max-w-[280px] p-1 rounded-xl bg-theme-surface/95 backdrop-blur-md border border-theme-subtle shadow-xl ${isSelf ? 'right-0' : 'left-0'}`;
+      hoverBar.className = `msg-hover-actions absolute -top-4 z-30 flex items-center gap-0.5 p-1 rounded-xl bg-theme-surface/95 backdrop-blur-md border border-theme-subtle shadow-xl ${isSelf ? 'right-0' : 'left-0'}`;
 
-      // Face Emoji Reactions
-      FACE_REACTIONS.forEach(emo => {
+// Quick Emoji Reactions
+      QUICK_REACTIONS.forEach(emo => {
         const emoBtn = document.createElement('button');
         emoBtn.type = 'button';
         emoBtn.className = 'text-sm px-1 py-0.5 rounded-lg hover-theme active:scale-90 transition-transform cursor-pointer';
