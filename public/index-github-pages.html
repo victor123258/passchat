@@ -496,8 +496,8 @@
       transform: translateY(4px);
       transition: opacity 0.15s ease, transform 0.15s ease;
     }
-    .msg-group:hover .msg-hover-actions,
-    .msg-group:focus-within .msg-hover-actions,
+    .msg-hover-target:hover .msg-hover-actions,
+    .msg-hover-target:focus-within .msg-hover-actions,
     .msg-hover-actions.force-show {
       opacity: 1;
       pointer-events: auto;
@@ -2217,20 +2217,8 @@
           e.stopPropagation();
           sendReaction(msg.id, emo);
         };
-        hoverBar.appendChild(emoBtn);
+hoverBar.appendChild(emoBtn);
       });
-
-      // More Reactions: opens the full emoji action sheet (desktop & mobile)
-      const moreBtn = document.createElement('button');
-      moreBtn.type = 'button';
-      moreBtn.className = 'p-1 rounded-lg text-theme-dim hover:text-theme-accent hover-theme transition-colors cursor-pointer';
-      moreBtn.title = 'More Reactions';
-      moreBtn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5h6M9 12h6M9 19h6"/></svg>';
-      moreBtn.onclick = (e) => {
-        e.stopPropagation();
-        openMessageActionSheet(msg, isSelf);
-      };
-      hoverBar.appendChild(moreBtn);
 
       // Separator
       const sep = document.createElement('span');
@@ -2324,7 +2312,7 @@
 
       // Row containing the bubble and the hover action bar (icons sit above bubble)
       const bubbleRow = document.createElement('div');
-      bubbleRow.className = `relative flex items-start gap-1 max-w-full ${isSelf ? 'flex-row-reverse' : ''}`;
+      bubbleRow.className = `relative flex items-start gap-1 max-w-full msg-hover-target ${isSelf ? 'flex-row-reverse' : ''}`;
       bubbleRow.appendChild(bubble);
       bubbleRow.appendChild(hoverBar);
 
