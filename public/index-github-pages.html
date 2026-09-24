@@ -254,6 +254,67 @@
     .wave-bar:nth-child(4) { animation-delay: 0.45s; }
     .wave-bar:nth-child(5) { animation-delay: 0.2s; }
     .wave-bar:nth-child(6) { animation-delay: 0.35s; }
+
+    /* Custom range slider styling for audio waveform scrubber */
+    input[type=range].audio-scrubber {
+      -webkit-appearance: none;
+      appearance: none;
+      background: rgba(255, 255, 255, 0.2);
+      height: 4px;
+      border-radius: 9999px;
+      cursor: pointer;
+    }
+    input[type=range].audio-scrubber::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+    input[type=range].audio-scrubber::-webkit-slider-thumb:hover {
+      transform: scale(1.3);
+    }
+    input[type=range].audio-scrubber::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: none;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+    }
+
+    /* Message Floating Action Bar & Touch/Tap Context Menu */
+    .msg-group {
+      position: relative;
+    }
+    .msg-hover-actions {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(4px);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+    .msg-group:hover .msg-hover-actions,
+    .msg-group:focus-within .msg-hover-actions,
+    .msg-hover-actions.force-show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+    .tap-highlight {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .reaction-pill {
+      transition: transform 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .reaction-pill:active {
+      transform: scale(0.92);
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased select-none relative">
@@ -469,6 +530,14 @@
           </div>
         </div>
 
+        <!-- Vault / Persistence Menu Button -->
+        <div class="relative">
+          <button id="headerVaultBtn" class="p-2 sm:px-2.5 sm:py-1.5 rounded-xl bg-theme-elevated hover:bg-theme-surface border border-theme-subtle text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer" title="Encrypted Local Vault (IndexedDB)">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/></svg>
+            <span class="hidden xl:inline text-theme-muted" id="headerVaultLabel">Vault</span>
+          </button>
+        </div>
+
         <!-- Copy Invite -->
         <button id="copyInviteBtn" class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-theme-elevated hover:bg-theme-surface text-slate-200 text-xs font-medium flex items-center gap-1.5 border border-theme-subtle transition-colors cursor-pointer" title="Copy shareable link with passkey">
           <svg class="w-3.5 h-3.5 text-theme-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
@@ -570,6 +639,11 @@
         <!-- Voice Message Button -->
         <button type="button" id="voiceRecordBtn" class="p-2.5 rounded-xl text-theme-dim hover:text-rose-400 hover:bg-theme-elevated transition-colors cursor-pointer" title="Record Voice Message">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+        </button>
+
+        <!-- Input Emoji Picker Toggle Button -->
+        <button type="button" id="inputEmojiBtn" class="p-2.5 rounded-xl text-theme-dim hover:text-amber-400 hover:bg-theme-elevated transition-colors cursor-pointer" title="Insert Emoji">
+          <span class="text-lg leading-none">😊</span>
         </button>
 
         <div class="flex-1 bg-theme-input border border-theme-subtle focus-within:border-[var(--accent)] focus-within:ring-1 focus-within:ring-[var(--glow)] rounded-2xl transition-all">
@@ -679,30 +753,198 @@
       </div>
     </div>
 
-    <!-- Bottom Controls: Mute Mic, Toggle Camera, End Call -->
-    <div class="flex items-center justify-center gap-4 bg-theme-surface/90 py-3.5 px-6 rounded-2xl border border-theme-subtle max-w-md mx-auto w-full backdrop-blur-md">
+    <!-- Bottom Controls: Mute Mic, Studio Audio, Camera, Screen Share, PiP, End Call -->
+    <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 bg-theme-surface/90 py-3 px-4 sm:px-6 rounded-2xl border border-theme-subtle max-w-xl mx-auto w-full backdrop-blur-md">
       
       <!-- Mic Toggle -->
-      <button id="toggleMicBtn" class="p-3.5 rounded-2xl bg-theme-elevated hover:bg-theme-surface text-white transition-colors cursor-pointer" title="Mute/Unmute Mic">
+      <button id="toggleMicBtn" class="p-3 rounded-2xl bg-theme-elevated hover:bg-theme-surface text-white transition-colors cursor-pointer" title="Mute/Unmute Mic">
         <svg id="micIcon" class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
       </button>
 
+      <!-- Studio Audio Constraints Toggle -->
+      <button id="toggleStudioAudioBtn" class="p-3 rounded-2xl bg-theme-elevated hover:bg-theme-surface text-emerald-400 border border-emerald-500/30 transition-colors cursor-pointer text-xs font-mono flex items-center gap-1.5" title="Studio Audio: Noise Suppression & Echo Cancellation Active">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="hidden sm:inline font-semibold">Studio Audio</span>
+      </button>
+
       <!-- Camera Toggle -->
-      <button id="toggleCameraBtn" class="p-3.5 rounded-2xl bg-theme-elevated hover:bg-theme-surface text-white transition-colors cursor-pointer" title="Camera On/Off">
+      <button id="toggleCameraBtn" class="p-3 rounded-2xl bg-theme-elevated hover:bg-theme-surface text-white transition-colors cursor-pointer" title="Camera On/Off">
         <svg id="cameraIcon" class="w-5 h-5 text-theme-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
       </button>
 
-      <!-- End Call Button -->
-      <button id="endCallBtn" class="p-3.5 px-6 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-semibold flex items-center gap-2 shadow-lg shadow-rose-600/30 transition-all cursor-pointer">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M5 3a2 2 0 00-2 2v1c0 8.284 6.716 15 15 15h1a2 2 0 002-2v-3.28a1 1 0 00-.684-.948l-4.493-1.498a1 1 0 00-1.21.502l-1.13 2.257a11.042 11.042 0 01-5.516-5.517l2.257-1.128a1 1 0 00.502-1.21L9.228 3.683A1 1 0 008.279 3H5z"/></svg>
-        <span>End Call</span>
+      <!-- Screen Sharing Toggle -->
+      <button id="toggleScreenShareBtn" class="p-3 rounded-2xl bg-theme-elevated hover:bg-theme-surface text-white transition-colors cursor-pointer" title="Share Screen / Presentation (getDisplayMedia)">
+        <svg id="screenShareIcon" class="w-5 h-5 text-theme-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
       </button>
+
+      <!-- Picture-in-Picture Floating Mode -->
+      <button id="togglePipBtn" class="p-3 rounded-2xl bg-theme-elevated hover:bg-theme-surface text-white transition-colors cursor-pointer" title="Float Call Video (Picture-in-Picture)">
+        <svg class="w-5 h-5 text-theme-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2zm9 4h5v4h-5v-4z"/></svg>
+      </button>
+
+      <!-- End Call Button -->
+      <button id="endCallBtn" class="p-3 px-5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-semibold flex items-center gap-1.5 shadow-lg shadow-rose-600/30 transition-all cursor-pointer">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M5 3a2 2 0 00-2 2v1c0 8.284 6.716 15 15 15h1a2 2 0 002-2v-3.28a1 1 0 00-.684-.948l-4.493-1.498a1 1 0 00-1.21.502l-1.13 2.257a11.042 11.042 0 01-5.516-5.517l2.257-1.128a1 1 0 00.502-1.21L9.228 3.683A1 1 0 008.279 3H5z"/></svg>
+        <span>End</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== MESSAGE EDIT MODAL ==================== -->
+  <div id="editMessageModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="w-full max-w-lg bg-theme-surface border border-theme-subtle rounded-3xl p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>Edit Encrypted Message</span>
+          <span class="text-xs font-mono text-theme-dim">(v2)</span>
+        </h3>
+        <button id="closeEditModalBtn" class="text-theme-dim hover:text-white p-1">✕</button>
+      </div>
+      <p class="text-xs text-theme-muted mb-3">Updates will re-encrypt and synchronize in real-time across connected peers.</p>
+      <textarea id="editMessageTextarea" rows="4" class="w-full p-3.5 rounded-2xl bg-theme-input text-white text-sm border border-theme-subtle focus:outline-none focus:border-[var(--accent)] resize-none"></textarea>
+      <div class="flex justify-end gap-2.5 mt-4">
+        <button type="button" id="cancelEditBtn" class="px-4 py-2 rounded-xl bg-theme-elevated hover:bg-theme-surface text-slate-300 text-xs font-medium cursor-pointer">Cancel</button>
+        <button type="button" id="saveEditBtn" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold shadow-md cursor-pointer flex items-center gap-1.5">
+          <span>Save Changes</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== LOCAL VAULT / PERSISTENCE MODAL ==================== -->
+  <div id="vaultModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="w-full max-w-md bg-theme-surface border border-theme-subtle rounded-3xl p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/></svg>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">Local Encrypted Vault</h3>
+            <p class="text-[11px] text-theme-dim font-mono">IndexedDB + AES-GCM Encrypted</p>
+          </div>
+        </div>
+        <button id="closeVaultModalBtn" class="text-theme-dim hover:text-white p-1">✕</button>
+      </div>
+
+      <!-- Persistence Toggle -->
+      <div class="p-3.5 rounded-2xl bg-theme-elevated/70 border border-theme-subtle mb-4 flex items-center justify-between">
+        <div>
+          <div class="text-xs font-semibold text-white">Persist Messages Locally</div>
+          <div class="text-[11px] text-theme-muted mt-0.5">Keep encrypted chat history across page refreshes.</div>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="vaultAutoSaveToggle" class="sr-only peer" checked>
+          <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+        </label>
+      </div>
+
+      <!-- Stats Box -->
+      <div class="grid grid-cols-2 gap-2.5 mb-4 text-center font-mono">
+        <div class="p-3 rounded-2xl bg-theme-input border border-theme-subtle">
+          <div class="text-[10px] text-theme-dim uppercase">Saved Messages</div>
+          <div class="text-lg font-bold text-white mt-1" id="vaultMessageCount">0</div>
+        </div>
+        <div class="p-3 rounded-2xl bg-theme-input border border-theme-subtle">
+          <div class="text-[10px] text-theme-dim uppercase">Room Key Vault</div>
+          <div class="text-xs font-semibold text-emerald-400 mt-2 truncate" id="vaultRoomTopic">Secure</div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="space-y-2 mb-4">
+        <!-- Export Backup -->
+        <button type="button" id="exportBackupBtn" class="w-full py-2.5 px-3.5 rounded-xl bg-theme-elevated hover:bg-theme-surface border border-theme-subtle text-slate-200 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer">
+          <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          <span>Export Encrypted Backup (.passchat)</span>
+        </button>
+
+        <!-- Import Backup -->
+        <input type="file" id="importBackupInput" accept=".passchat,.json" class="hidden" />
+        <button type="button" id="importBackupBtn" class="w-full py-2.5 px-3.5 rounded-xl bg-theme-elevated hover:bg-theme-surface border border-theme-subtle text-slate-200 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer">
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          <span>Import Backup File</span>
+        </button>
+      </div>
+
+      <!-- Danger Zone / Nuke Room History -->
+      <div class="pt-3 border-t border-theme-subtle">
+        <button type="button" id="nukeVaultBtn" class="w-full py-2.5 px-3.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          <span>Nuke Local History (Shred Vault)</span>
+        </button>
+      </div>
     </div>
   </div>
 
   <!-- Lightbox Modal -->
   <div id="lightbox" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md cursor-pointer">
     <img id="lightboxImg" class="max-h-[90vh] max-w-full rounded-2xl object-contain shadow-2xl" />
+  </div>
+
+  <!-- ==================== INPUT EMOJI PICKER POPOVER ==================== -->
+  <div id="inputEmojiPopover" class="hidden fixed bottom-18 left-4 sm:left-auto sm:right-auto z-40 w-72 sm:w-80 bg-theme-surface/95 backdrop-blur-xl border border-theme-subtle rounded-3xl p-3 shadow-2xl">
+    <div class="flex items-center justify-between pb-2 mb-2 border-b border-theme-subtle text-xs text-theme-dim">
+      <span class="font-medium text-slate-300">Quick Emojis</span>
+      <button id="closeInputEmojiBtn" class="text-theme-dim hover:text-white p-1">✕</button>
+    </div>
+    <div class="grid grid-cols-7 gap-1.5 max-h-48 overflow-y-auto p-1" id="inputEmojiGrid">
+      <!-- Injected dynamically -->
+    </div>
+  </div>
+
+  <!-- ==================== TAP-TO-ACTION BOTTOM SHEET (MOBILE & DESKTOP) ==================== -->
+  <div id="messageActionSheet" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+    <div class="w-full sm:max-w-sm bg-theme-surface border border-theme-subtle rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl transform transition-transform">
+      <!-- Header bar with message preview -->
+      <div class="flex items-center justify-between mb-3 pb-2.5 border-b border-theme-subtle">
+        <div class="min-w-0 pr-3">
+          <span class="text-[11px] font-semibold text-theme-accent uppercase tracking-wider block" id="sheetAuthorLabel">Message</span>
+          <p class="text-xs text-theme-muted truncate" id="sheetPreviewText">...</p>
+        </div>
+        <button id="closeActionSheetBtn" class="text-theme-dim hover:text-white p-1 text-sm">✕</button>
+      </div>
+
+      <!-- Quick Reactions Row -->
+      <div class="mb-4">
+        <span class="text-[10px] text-theme-dim uppercase tracking-wider block mb-2 font-mono">React with Emoji</span>
+        <div class="flex items-center justify-between gap-1 p-1.5 rounded-2xl bg-theme-input border border-theme-subtle">
+          <button class="sheet-react-btn text-xl p-2 rounded-xl hover:bg-white/10 active:scale-90 transition-transform cursor-pointer" data-emoji="❤️">❤️</button>
+          <button class="sheet-react-btn text-xl p-2 rounded-xl hover:bg-white/10 active:scale-90 transition-transform cursor-pointer" data-emoji="👍">👍</button>
+          <button class="sheet-react-btn text-xl p-2 rounded-xl hover:bg-white/10 active:scale-90 transition-transform cursor-pointer" data-emoji="🔥">🔥</button>
+          <button class="sheet-react-btn text-xl p-2 rounded-xl hover:bg-white/10 active:scale-90 transition-transform cursor-pointer" data-emoji="😂">😂</button>
+          <button class="sheet-react-btn text-xl p-2 rounded-xl hover:bg-white/10 active:scale-90 transition-transform cursor-pointer" data-emoji="😮">😮</button>
+          <button class="sheet-react-btn text-xl p-2 rounded-xl hover:bg-white/10 active:scale-90 transition-transform cursor-pointer" data-emoji="🎉">🎉</button>
+        </div>
+      </div>
+
+      <!-- Action Items List -->
+      <div class="space-y-1.5" id="sheetActionsList">
+        <!-- Reply -->
+        <button id="sheetReplyBtn" class="w-full py-2.5 px-3 rounded-xl bg-theme-elevated hover:bg-theme-surface border border-theme-subtle text-slate-200 text-xs font-medium flex items-center gap-2.5 transition-colors cursor-pointer">
+          <svg class="w-4 h-4 text-theme-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+          <span>Reply to Message</span>
+        </button>
+
+        <!-- Copy Text -->
+        <button id="sheetCopyBtn" class="w-full py-2.5 px-3 rounded-xl bg-theme-elevated hover:bg-theme-surface border border-theme-subtle text-slate-200 text-xs font-medium flex items-center gap-2.5 transition-colors cursor-pointer">
+          <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+          <span>Copy Message Text</span>
+        </button>
+
+        <!-- Edit (Self only) -->
+        <button id="sheetEditBtn" class="hidden w-full py-2.5 px-3 rounded-xl bg-theme-elevated hover:bg-theme-surface border border-theme-subtle text-sky-400 text-xs font-medium flex items-center gap-2.5 transition-colors cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          <span>Edit Message</span>
+        </button>
+
+        <!-- Unsend (Self only) -->
+        <button id="sheetUnsendBtn" class="hidden w-full py-2.5 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs font-semibold flex items-center gap-2.5 transition-colors cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          <span>Unsend (Revoke for Everyone)</span>
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Toast Notification -->
@@ -887,12 +1129,274 @@
     let peerConnection = null;
     let localStream = null;
     let remoteStream = null;
+    let screenStream = null;
     let currentCallType = null; // 'voice' | 'video'
     let callTimerInterval = null;
     let callSeconds = 0;
     let pendingOfferData = null;
     let isMicMuted = false;
     let isCameraOff = false;
+    let isScreenSharing = false;
+    let studioAudioEnabled = true;
+
+    // WebRTC P2P DataChannels for Large Files (100MB+)
+    let fileDataChannel = null;
+    let p2pFileTransferActive = false;
+    const CHUNK_SIZE = 64 * 1024; // 64KB chunks for high performance
+    let incomingFileTransfers = {}; // transferId -> { meta, receivedChunks, totalBytesReceived }
+
+    // In-memory message store for Editing and Revocation ("Unsend")
+    let messagesMap = new Map(); // id -> msgObj
+    let editingMessageId = null;
+
+    // ==================== ENCRYPTED LOCAL VAULT (IndexedDB) ====================
+    let isVaultPersistenceEnabled = localStorage.getItem('passchat_vault_enabled') !== 'false';
+    const DB_NAME = 'PassChatVaultDB';
+    const DB_VERSION = 1;
+    const STORE_NAME = 'room_messages';
+    let dbInstance = null;
+
+    function initIndexedDB() {
+      return new Promise((resolve, reject) => {
+        if (!window.indexedDB) {
+          console.warn('IndexedDB not supported');
+          resolve(null);
+          return;
+        }
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            // Index by room topic + timestamp
+            const store = db.createObjectStore(STORE_NAME, { keyPath: 'storageKey' });
+            store.createIndex('topic', 'topic', { unique: false });
+            store.createIndex('timestamp', 'timestamp', { unique: false });
+          }
+        };
+        request.onsuccess = (e) => {
+          dbInstance = e.target.result;
+          resolve(dbInstance);
+        };
+        request.onerror = (e) => {
+          console.error('IndexedDB open error:', e);
+          resolve(null);
+        };
+      });
+    }
+
+    async function saveMessageToVault(msg) {
+      if (!isVaultPersistenceEnabled || !currentTopic || !cryptoKey) return;
+      try {
+        if (!dbInstance) await initIndexedDB();
+        if (!dbInstance) return;
+
+        // Encrypt the message object specifically for local storage with its own IV
+        const cipherData = await encryptPayload(msg);
+        const record = {
+          storageKey: `${currentTopic}_${msg.id}`,
+          topic: currentTopic,
+          id: msg.id,
+          timestamp: msg.timestamp || Date.now(),
+          cipherData: cipherData
+        };
+
+        const tx = dbInstance.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        store.put(record);
+        tx.oncomplete = () => updateVaultStats();
+      } catch (err) {
+        console.warn('Vault save error:', err);
+      }
+    }
+
+    async function removeMessageFromVault(messageId) {
+      if (!currentTopic) return;
+      try {
+        if (!dbInstance) await initIndexedDB();
+        if (!dbInstance) return;
+        const tx = dbInstance.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        store.delete(`${currentTopic}_${messageId}`);
+        tx.oncomplete = () => updateVaultStats();
+      } catch (err) {
+        console.warn('Vault remove error:', err);
+      }
+    }
+
+    async function loadVaultMessagesForCurrentRoom() {
+      if (!isVaultPersistenceEnabled || !currentTopic || !cryptoKey) return 0;
+      try {
+        if (!dbInstance) await initIndexedDB();
+        if (!dbInstance) return 0;
+
+        return new Promise((resolve) => {
+          const tx = dbInstance.transaction(STORE_NAME, 'readonly');
+          const store = tx.objectStore(STORE_NAME);
+          const index = store.index('topic');
+          const request = index.getAll(currentTopic);
+
+          request.onsuccess = async (e) => {
+            const records = e.target.result || [];
+            records.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+            let restoredCount = 0;
+            for (const record of records) {
+              try {
+                const decryptedMsg = await decryptPayload(record.cipherData);
+                if (decryptedMsg && decryptedMsg.id) {
+                  const isSelf = decryptedMsg.sender && decryptedMsg.sender.id === currentUser.id;
+                  appendMessage(decryptedMsg, isSelf, false); // false = don't re-save to vault
+                  restoredCount++;
+                }
+              } catch (decErr) {
+                // If wrong key/passkey for record, skip gracefully
+              }
+            }
+            updateVaultStats();
+            resolve(restoredCount);
+          };
+          request.onerror = () => resolve(0);
+        });
+      } catch (e) {
+        console.warn('Vault load error:', e);
+        return 0;
+      }
+    }
+
+    async function updateVaultStats() {
+      if (!dbInstance) return;
+      try {
+        const tx = dbInstance.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const index = store.index('topic');
+        const countReq = index.count(currentTopic);
+        countReq.onsuccess = () => {
+          const count = countReq.result || 0;
+          const countEl = document.getElementById('vaultMessageCount');
+          if (countEl) countEl.innerText = count;
+        };
+      } catch (e) {}
+    }
+
+    async function nukeCurrentRoomVault() {
+      if (!currentTopic) return;
+      try {
+        if (!dbInstance) await initIndexedDB();
+        if (!dbInstance) return;
+
+        const tx = dbInstance.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const index = store.index('topic');
+        const req = index.getAllKeys(currentTopic);
+
+        req.onsuccess = () => {
+          const keys = req.result || [];
+          const delTx = dbInstance.transaction(STORE_NAME, 'readwrite');
+          const delStore = delTx.objectStore(STORE_NAME);
+          keys.forEach(k => delStore.delete(k));
+          delTx.oncomplete = () => {
+            // Clear message DOM feed
+            messagesContainer.innerHTML = '';
+            messagesMap.clear();
+            updateVaultStats();
+            showToast('Local vault history completely shredded.');
+          };
+        };
+      } catch (e) {
+        showToast('Nuke failed: ' + e.message);
+      }
+    }
+
+    async function exportEncryptedVaultFile() {
+      if (!currentTopic || !cryptoKey) {
+        showToast('Please join a room to export backup.');
+        return;
+      }
+      try {
+        if (!dbInstance) await initIndexedDB();
+        const tx = dbInstance.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const index = store.index('topic');
+        const req = index.getAll(currentTopic);
+
+        req.onsuccess = async () => {
+          const records = req.result || [];
+          if (records.length === 0) {
+            showToast('No saved messages to export in this room.');
+            return;
+          }
+
+          const exportPayload = {
+            version: '2.0',
+            exportedAt: new Date().toISOString(),
+            roomTopic: currentTopic,
+            records: records
+          };
+
+          // Wrap entire export in room encryption
+          const exportStr = JSON.stringify(exportPayload);
+          const encryptedBackup = await encryptPayload({ data: exportStr, type: 'vault_backup' });
+
+          const blob = new Blob([encryptedBackup], { type: 'application/octet-stream' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          const dateTag = new Date().toISOString().slice(0, 10);
+          a.href = url;
+          a.download = `passchat_vault_${currentPasskey.slice(0, 6)}_${dateTag}.passchat`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          showToast('Vault backup exported successfully!');
+        };
+      } catch (err) {
+        showToast('Export failed: ' + err.message);
+      }
+    }
+
+    async function importEncryptedVaultFile(file) {
+      if (!file || !cryptoKey) return;
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const rawCipher = e.target.result;
+          const decryptedContainer = await decryptPayload(rawCipher);
+          if (!decryptedContainer || decryptedContainer.type !== 'vault_backup') {
+            showToast('Invalid or corrupted .passchat file.');
+            return;
+          }
+
+          const payload = JSON.parse(decryptedContainer.data);
+          if (!payload.records || !Array.isArray(payload.records)) {
+            showToast('No valid message records in backup.');
+            return;
+          }
+
+          if (!dbInstance) await initIndexedDB();
+          const tx = dbInstance.transaction(STORE_NAME, 'readwrite');
+          const store = tx.objectStore(STORE_NAME);
+
+          let importedCount = 0;
+          for (const rec of payload.records) {
+            rec.topic = currentTopic;
+            rec.storageKey = `${currentTopic}_${rec.id}`;
+            store.put(rec);
+            importedCount++;
+          }
+
+          tx.oncomplete = async () => {
+            showToast(`Imported ${importedCount} messages. Reloading room feed...`);
+            messagesContainer.innerHTML = '';
+            messagesMap.clear();
+            await loadVaultMessagesForCurrentRoom();
+          };
+        } catch (err) {
+          console.error('Import error:', err);
+          showToast('Failed to decrypt backup. Ensure you use the exact same passkey!');
+        }
+      };
+      reader.readAsText(file);
+    }
 
     // Voice Message Recording State
     let mediaRecorder = null;
@@ -980,11 +1484,11 @@
       const combined = new Uint8Array(iv.length + ciphertext.byteLength);
       combined.set(iv, 0);
       combined.set(new Uint8Array(ciphertext), iv.length);
-      return btoa(String.fromCharCode(...combined));
+      return bytesToBase64(combined);
     }
 
     async function decryptPayload(base64Payload) {
-      const combined = Uint8Array.from(atob(base64Payload), c => c.charCodeAt(0));
+      const combined = base64ToBytes(base64Payload);
       const iv = combined.slice(0, 12);
       const data = combined.slice(12);
       const decrypted = await crypto.subtle.decrypt(
@@ -993,6 +1497,26 @@
         data
       );
       return JSON.parse(new TextDecoder().decode(decrypted));
+    }
+
+    // Chunked byte <-> base64 helpers. Spread with String.fromCharCode(...arr)
+    // overflows the call stack on large payloads (files/voice notes), so chunk it.
+    function bytesToBase64(bytes) {
+      let binary = '';
+      const chunkSize = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+      }
+      return btoa(binary);
+    }
+
+    function base64ToBytes(base64) {
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return bytes;
     }
 
     function showToast(text) {
@@ -1074,12 +1598,19 @@
     // ==================== MESSAGE RENDERING ====================
     const messagesContainer = document.getElementById('messagesContainer');
 
-    function appendMessage(msg, isSelf) {
-      if (document.getElementById('msg-' + msg.id)) return;
+    function appendMessage(msg, isSelf, saveToVault = true) {
+      messagesMap.set(msg.id, msg);
+      if (saveToVault) {
+        saveMessageToVault(msg);
+      }
+      if (document.getElementById('msg-' + msg.id)) {
+        updateMessageDOM(msg);
+        return;
+      }
 
       const msgDiv = document.createElement('div');
       msgDiv.id = 'msg-' + msg.id;
-      msgDiv.className = `flex gap-2.5 my-2.5 ${isSelf ? 'flex-row-reverse' : 'flex-row'}`;
+      msgDiv.className = `flex gap-2.5 my-2.5 group ${isSelf ? 'flex-row-reverse' : 'flex-row'}`;
 
       const avatarDiv = document.createElement('div');
       avatarDiv.className = 'w-8 h-8 rounded-xl flex items-center justify-center text-sm border border-theme-subtle bg-theme-surface shrink-0';
@@ -1091,9 +1622,10 @@
       const meta = document.createElement('div');
       meta.className = 'text-[10px] text-theme-dim mb-1 px-1 flex items-center gap-1.5 font-mono';
       const timeStr = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      meta.innerHTML = `<span class="font-semibold text-slate-300">${isSelf ? 'You' : msg.sender.name}</span><span>·</span><span>${timeStr}</span>`;
+      meta.innerHTML = `<span class="font-semibold text-slate-300">${isSelf ? 'You' : msg.sender.name}</span><span>·</span><span>${timeStr}</span><span id="edited-indicator-${msg.id}" class="${msg.isEdited ? '' : 'hidden'} text-theme-accent italic">(edited)</span>`;
 
       const bubble = document.createElement('div');
+      bubble.id = 'bubble-' + msg.id;
       bubble.className = `p-3 rounded-2xl text-sm shadow-md break-words ${
         isSelf 
           ? 'text-white rounded-tr-xs' 
@@ -1112,10 +1644,13 @@
         bubble.appendChild(replyBox);
       }
 
-      // 1. Voice Message Card
+      // 1. Voice Message Card with Interactive Waveform Scrubber
       if (msg.type === 'voice_note' && msg.audioData) {
         const voiceCard = document.createElement('div');
-        voiceCard.className = 'flex items-center gap-3 p-1 min-w-[210px]';
+        voiceCard.className = 'flex flex-col gap-2 p-1 min-w-[240px] sm:min-w-[280px]';
+
+        const topRow = document.createElement('div');
+        topRow.className = 'flex items-center gap-3';
 
         const playBtn = document.createElement('button');
         playBtn.className = 'w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center shadow transition-colors shrink-0 cursor-pointer';
@@ -1123,6 +1658,37 @@
 
         const audio = new Audio(msg.audioData);
         let isPlaying = false;
+
+        const timeDisplay = document.createElement('span');
+        timeDisplay.className = 'text-[10px] text-white/80 font-mono shrink-0';
+        timeDisplay.innerText = msg.duration || '00:00';
+
+        const waveBox = document.createElement('div');
+        waveBox.className = 'flex items-center gap-1 h-5 flex-1';
+        waveBox.innerHTML = `
+          <span class="w-1 h-3 bg-white/70 rounded-full"></span>
+          <span class="w-1 h-5 bg-white/90 rounded-full"></span>
+          <span class="w-1 h-2 bg-white/60 rounded-full"></span>
+          <span class="w-1 h-4 bg-white/80 rounded-full"></span>
+          <span class="w-1 h-6 bg-white rounded-full"></span>
+          <span class="w-1 h-3 bg-white/70 rounded-full"></span>
+          <span class="w-1 h-4 bg-white/80 rounded-full"></span>
+          <span class="w-1 h-5 bg-white/90 rounded-full"></span>
+        `;
+
+        topRow.appendChild(playBtn);
+        topRow.appendChild(waveBox);
+        topRow.appendChild(timeDisplay);
+
+        // Interactive Audio Scrubber Timeline
+        const scrubberRow = document.createElement('div');
+        scrubberRow.className = 'flex items-center gap-2 pt-0.5';
+        const scrubber = document.createElement('input');
+        scrubber.type = 'range';
+        scrubber.min = '0';
+        scrubber.max = '100';
+        scrubber.value = '0';
+        scrubber.className = 'audio-scrubber w-full';
 
         playBtn.onclick = () => {
           if (!isPlaying) {
@@ -1136,42 +1702,69 @@
           }
         };
 
+        audio.ontimeupdate = () => {
+          if (audio.duration) {
+            scrubber.value = (audio.currentTime / audio.duration) * 100;
+            const currentMins = String(Math.floor(audio.currentTime / 60)).padStart(2, '0');
+            const currentSecs = String(Math.floor(audio.currentTime % 60)).padStart(2, '0');
+            timeDisplay.innerText = `${currentMins}:${currentSecs}`;
+          }
+        };
+
+        scrubber.oninput = () => {
+          if (audio.duration) {
+            audio.currentTime = (scrubber.value / 100) * audio.duration;
+          }
+        };
+
         audio.onended = () => {
           playBtn.innerHTML = '▶';
           isPlaying = false;
+          scrubber.value = '0';
+          timeDisplay.innerText = msg.duration || '00:00';
         };
 
-        const waveBox = document.createElement('div');
-        waveBox.className = 'flex-1 flex flex-col gap-1';
-        waveBox.innerHTML = `
-          <div class="flex items-center gap-1 h-5">
-            <span class="w-1 h-3 bg-white/70 rounded-full"></span>
-            <span class="w-1 h-5 bg-white/90 rounded-full"></span>
-            <span class="w-1 h-2 bg-white/60 rounded-full"></span>
-            <span class="w-1 h-4 bg-white/80 rounded-full"></span>
-            <span class="w-1 h-6 bg-white rounded-full"></span>
-            <span class="w-1 h-3 bg-white/70 rounded-full"></span>
-            <span class="w-1 h-4 bg-white/80 rounded-full"></span>
-          </div>
-          <div class="text-[10px] text-white/80 font-mono">${msg.duration || '00:04'} Voice Note</div>
-        `;
-
-        voiceCard.appendChild(playBtn);
-        voiceCard.appendChild(waveBox);
+        scrubberRow.appendChild(scrubber);
+        voiceCard.appendChild(topRow);
+        voiceCard.appendChild(scrubberRow);
         bubble.appendChild(voiceCard);
       }
 
-      // 2. Generic File Attachment Card
-      if (msg.file && msg.file.data) {
+      // 2. In-App Video Previews & Media Player (Inline .mp4 / .webm / .mov)
+      const ext = ((msg.file && msg.file.name) || '').split('.').pop().toLowerCase();
+      const isVideoFile = ['mp4', 'webm', 'mov', 'mkv'].includes(ext);
+
+      if (msg.file && msg.file.data && isVideoFile) {
+        const videoWrapper = document.createElement('div');
+        videoWrapper.className = 'my-1 rounded-2xl overflow-hidden bg-black/40 border border-white/10 max-w-sm';
+
+        const vid = document.createElement('video');
+        vid.src = msg.file.data;
+        vid.controls = true;
+        vid.playsinline = true;
+        vid.preload = 'metadata';
+        vid.className = 'w-full max-h-64 object-contain rounded-t-xl bg-black';
+
+        const videoFooter = document.createElement('div');
+        videoFooter.className = 'p-2 flex items-center justify-between text-xs';
+        videoFooter.innerHTML = `
+          <span class="truncate font-semibold text-white/90 text-xs">${msg.file.name}</span>
+          <span class="text-[10px] text-white/70 font-mono ml-2">${formatFileSize(msg.file.size)}</span>
+        `;
+
+        videoWrapper.appendChild(vid);
+        videoWrapper.appendChild(videoFooter);
+        bubble.appendChild(videoWrapper);
+      }
+      // 3. Generic File Attachment Card (Non-video, non-image files)
+      else if (msg.file && msg.file.data && !msg.attachment) {
         const fileCard = document.createElement('div');
         fileCard.className = 'p-2.5 rounded-xl bg-black/25 border border-white/10 flex items-center justify-between gap-3 mb-1.5 min-w-[220px]';
         
         let fileIcon = '📄';
-        const ext = (msg.file.name || '').split('.').pop().toLowerCase();
         if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) fileIcon = '🖼️';
         else if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) fileIcon = '📦';
         else if (['mp3', 'wav', 'ogg', 'm4a'].includes(ext)) fileIcon = '🎵';
-        else if (['mp4', 'mov', 'mkv', 'webm'].includes(ext)) fileIcon = '🎬';
         else if (['pdf'].includes(ext)) fileIcon = '📑';
 
         fileCard.innerHTML = `
@@ -1200,7 +1793,7 @@
         bubble.appendChild(fileCard);
       }
 
-      // 3. Image Lightbox View
+      // 4. Image Lightbox View
       if (msg.attachment && msg.attachment.url) {
         const img = document.createElement('img');
         img.src = msg.attachment.url;
@@ -1212,48 +1805,110 @@
         bubble.appendChild(img);
       }
 
-      // 4. Text Body
+      // 5. Text Body
       if (msg.text) {
         const textP = document.createElement('div');
+        textP.id = 'text-' + msg.id;
         textP.className = 'whitespace-pre-wrap leading-relaxed';
         textP.innerText = msg.text;
         bubble.appendChild(textP);
       }
 
-      // Reactions & Reply Action Bar
-      const reactionWrap = document.createElement('div');
-      reactionWrap.className = 'flex items-center gap-1 mt-1';
-      reactionWrap.id = 'react-box-' + msg.id;
+      // Message Floating Toolbar (Visible on hover/focus, tap-to-open on touch)
+      const hoverBar = document.createElement('div');
+      hoverBar.className = `msg-hover-actions flex items-center gap-0.5 p-1 rounded-xl bg-theme-surface/90 backdrop-blur-md border border-theme-subtle shadow-xl my-1 z-20 ${isSelf ? 'self-end' : 'self-start'}`;
 
-      ['❤️', '👍', '🔥'].forEach(emo => {
+      // Quick Emoji Reaction Buttons in floating bar
+      ['❤️', '👍', '🔥', '😂'].forEach(emo => {
         const emoBtn = document.createElement('button');
-        emoBtn.className = 'text-[11px] px-1.5 py-0.5 rounded-md bg-theme-surface hover:bg-theme-elevated border border-theme-subtle cursor-pointer transition-colors';
+        emoBtn.type = 'button';
+        emoBtn.className = 'text-xs px-1.5 py-1 rounded-lg hover:bg-white/10 active:scale-90 transition-transform cursor-pointer';
         emoBtn.innerText = emo;
-        emoBtn.onclick = () => sendReaction(msg.id, emo);
-        reactionWrap.appendChild(emoBtn);
+        emoBtn.title = `React ${emo}`;
+        emoBtn.onclick = (e) => {
+          e.stopPropagation();
+          sendReaction(msg.id, emo);
+        };
+        hoverBar.appendChild(emoBtn);
       });
 
-      const replyBtn = document.createElement('button');
-      replyBtn.className = 'text-[10px] text-theme-dim hover:text-white px-1.5 py-0.5 rounded ml-1 cursor-pointer';
-      replyBtn.innerText = 'Reply';
-      replyBtn.onclick = () => {
-        replyingMessage = { id: msg.id, text: msg.text || (msg.file ? msg.file.name : 'Voice message'), senderName: msg.sender.name };
-        document.getElementById('replyAuthor').innerText = `Replying to ${msg.sender.name}:`;
-        document.getElementById('replySnippet').innerText = replyingMessage.text;
-        document.getElementById('replyBanner').classList.remove('hidden');
-        document.getElementById('messageInput').focus();
-      };
-      reactionWrap.appendChild(replyBtn);
+      // Separator
+      const sep = document.createElement('span');
+      sep.className = 'w-px h-3.5 bg-theme-subtle mx-0.5';
+      hoverBar.appendChild(sep);
 
+      // Reply Button
+      const replyBtn = document.createElement('button');
+      replyBtn.type = 'button';
+      replyBtn.className = 'p-1 rounded-lg text-theme-dim hover:text-white hover:bg-white/10 transition-colors cursor-pointer';
+      replyBtn.title = 'Reply';
+      replyBtn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>';
+      replyBtn.onclick = (e) => {
+        e.stopPropagation();
+        triggerReply(msg);
+      };
+      hoverBar.appendChild(replyBtn);
+
+      // Self-message options: Edit and Unsend
       if (isSelf) {
-        const tick = document.createElement('span');
-        tick.className = 'text-[10px] text-theme-dim font-mono ml-1';
-        tick.innerText = '✓✓';
-        reactionWrap.appendChild(tick);
+        if (msg.text && !msg.file && !msg.audioData) {
+          const editBtn = document.createElement('button');
+          editBtn.type = 'button';
+          editBtn.className = 'p-1 rounded-lg text-theme-dim hover:text-sky-300 hover:bg-white/10 transition-colors cursor-pointer';
+          editBtn.title = 'Edit Message';
+          editBtn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>';
+          editBtn.onclick = (e) => {
+            e.stopPropagation();
+            openEditModal(msg.id, msg.text);
+          };
+          hoverBar.appendChild(editBtn);
+        }
+
+        const unsendBtn = document.createElement('button');
+        unsendBtn.type = 'button';
+        unsendBtn.className = 'p-1 rounded-lg text-theme-dim hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer';
+        unsendBtn.title = 'Unsend Message';
+        unsendBtn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>';
+        unsendBtn.onclick = (e) => {
+          e.stopPropagation();
+          revokeMessage(msg.id);
+        };
+        hoverBar.appendChild(unsendBtn);
+      }
+
+      // More / Action Sheet trigger button
+      const moreBtn = document.createElement('button');
+      moreBtn.type = 'button';
+      moreBtn.className = 'p-1 rounded-lg text-theme-dim hover:text-white hover:bg-white/10 transition-colors cursor-pointer';
+      moreBtn.title = 'More Actions';
+      moreBtn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg>';
+      moreBtn.onclick = (e) => {
+        e.stopPropagation();
+        openMessageActionSheet(msg, isSelf);
+      };
+      hoverBar.appendChild(moreBtn);
+
+      // Tap-on-bubble opens action sheet on touch devices
+      bubble.style.cursor = 'pointer';
+      bubble.onclick = (e) => {
+        // Ignore if clicking on link, button, video or range inside bubble
+        if (e.target.closest('button') || e.target.closest('video') || e.target.closest('input')) return;
+        openMessageActionSheet(msg, isSelf);
+      };
+
+      // Applied reactions row
+      const reactionWrap = document.createElement('div');
+      reactionWrap.className = 'flex flex-wrap items-center gap-1 mt-1';
+      reactionWrap.id = 'react-box-' + msg.id;
+
+      // Render any reactions already registered in memory
+      if (msg.reactions) {
+        renderReactionsInBox(reactionWrap, msg.id, msg.reactions);
       }
 
       contentWrap.appendChild(meta);
       contentWrap.appendChild(bubble);
+      contentWrap.appendChild(hoverBar);
       contentWrap.appendChild(reactionWrap);
 
       msgDiv.appendChild(avatarDiv);
@@ -1263,31 +1918,229 @@
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
+    function triggerReply(msg) {
+      replyingMessage = { id: msg.id, text: msg.text || (msg.file ? msg.file.name : 'Voice message'), senderName: msg.sender.name };
+      document.getElementById('replyAuthor').innerText = `Replying to ${msg.sender.name}:`;
+      document.getElementById('replySnippet').innerText = replyingMessage.text;
+      document.getElementById('replyBanner').classList.remove('hidden');
+      document.getElementById('messageInput').focus();
+    }
+
+    // ==================== MESSAGE ACTION SHEET ====================
+    let actionSheetMessageId = null;
+
+    function openMessageActionSheet(msg, isSelf) {
+      if (!msg) return;
+      actionSheetMessageId = msg.id;
+      document.getElementById('sheetAuthorLabel').innerText = isSelf ? 'Your message' : `Message from ${msg.sender.name}`;
+      document.getElementById('sheetPreviewText').innerText = msg.text || (msg.file ? msg.file.name : 'Voice message');
+
+      const canEdit = !!msg.text && !msg.file && !msg.audioData;
+      document.getElementById('sheetEditBtn').classList.toggle('hidden', !(isSelf && canEdit));
+      document.getElementById('sheetUnsendBtn').classList.toggle('hidden', !isSelf);
+      document.getElementById('messageActionSheet').classList.remove('hidden');
+    }
+
+    function closeActionSheet() {
+      document.getElementById('messageActionSheet').classList.add('hidden');
+      actionSheetMessageId = null;
+    }
+
+    document.getElementById('closeActionSheetBtn').onclick = closeActionSheet;
+    document.getElementById('messageActionSheet').onclick = (e) => {
+      if (e.target.id === 'messageActionSheet') closeActionSheet();
+    };
+
+    document.getElementById('sheetReplyBtn').onclick = () => {
+      const msg = messagesMap.get(actionSheetMessageId);
+      if (msg) triggerReply(msg);
+      closeActionSheet();
+    };
+
+    document.getElementById('sheetCopyBtn').onclick = () => {
+      const msg = messagesMap.get(actionSheetMessageId);
+      if (msg && msg.text) {
+        navigator.clipboard.writeText(msg.text);
+        showToast('Message text copied');
+      }
+      closeActionSheet();
+    };
+
+    document.getElementById('sheetEditBtn').onclick = () => {
+      const msg = messagesMap.get(actionSheetMessageId);
+      if (msg && msg.text) openEditModal(msg.id, msg.text);
+      closeActionSheet();
+    };
+
+    document.getElementById('sheetUnsendBtn').onclick = () => {
+      if (actionSheetMessageId) revokeMessage(actionSheetMessageId);
+      closeActionSheet();
+    };
+
+    document.querySelectorAll('.sheet-react-btn').forEach((btn) => {
+      btn.onclick = () => {
+        if (actionSheetMessageId) sendReaction(actionSheetMessageId, btn.dataset.emoji);
+        closeActionSheet();
+      };
+    });
+
+    // Update DOM when a message has been edited
+    function updateMessageDOM(msg) {
+      const textEl = document.getElementById('text-' + msg.id);
+      if (textEl) {
+        textEl.innerText = msg.text;
+      }
+      const editedInd = document.getElementById('edited-indicator-' + msg.id);
+      if (editedInd) {
+        editedInd.classList.remove('hidden');
+      }
+    }
+
+    // Message Revocation / Unsend
+    function revokeMessage(messageId) {
+      if (!confirm('Unsend this message for everyone in the room?')) return;
+      publishEncrypted({
+        type: 'unsend_message',
+        messageId: messageId,
+        senderId: currentUser.id
+      });
+      handleLocalUnsend(messageId);
+    }
+
+    function handleLocalUnsend(messageId) {
+      const el = document.getElementById('msg-' + messageId);
+      if (el) {
+        el.style.transition = 'all 0.25s ease';
+        el.style.opacity = '0';
+        el.style.transform = 'scale(0.95)';
+        setTimeout(() => el.remove(), 250);
+      }
+      messagesMap.delete(messageId);
+      removeMessageFromVault(messageId);
+      showToast('Message unsent');
+    }
+
+    // Message Editing
+    function openEditModal(messageId, currentText) {
+      editingMessageId = messageId;
+      document.getElementById('editMessageTextarea').value = currentText;
+      document.getElementById('editMessageModal').classList.remove('hidden');
+      document.getElementById('editMessageTextarea').focus();
+    }
+
+    document.getElementById('closeEditModalBtn').onclick = () => {
+      document.getElementById('editMessageModal').classList.add('hidden');
+      editingMessageId = null;
+    };
+    document.getElementById('cancelEditBtn').onclick = () => {
+      document.getElementById('editMessageModal').classList.add('hidden');
+      editingMessageId = null;
+    };
+
+    document.getElementById('saveEditBtn').onclick = async () => {
+      const updatedText = document.getElementById('editMessageTextarea').value.trim();
+      if (!updatedText || !editingMessageId) return;
+
+      const cached = messagesMap.get(editingMessageId);
+      if (cached) {
+        cached.text = updatedText;
+        cached.isEdited = true;
+        updateMessageDOM(cached);
+        saveMessageToVault(cached);
+
+        await publishEncrypted({
+          type: 'edit_message',
+          messageId: editingMessageId,
+          text: updatedText,
+          senderId: currentUser.id
+        });
+      }
+
+      document.getElementById('editMessageModal').classList.add('hidden');
+      editingMessageId = null;
+      showToast('Message updated');
+    };
+
     function sendReaction(messageId, emoji) {
+      const action = toggleReactionForUser(messageId, emoji, currentUser.id);
+      if (!action) return;
       publishEncrypted({
         type: 'reaction',
         messageId: messageId,
         emoji: emoji,
-        userId: currentUser.id
+        userId: currentUser.id,
+        action: action
       });
-      applyLocalReaction(messageId, emoji);
+      renderReactionsBox(messageId);
+      saveMessageToVault(messagesMap.get(messageId));
     }
 
-    function applyLocalReaction(messageId, emoji) {
-      const box = document.getElementById('react-box-' + messageId);
-      if (!box) return;
-      let badge = document.getElementById(`badge-${messageId}-${emoji}`);
-      if (!badge) {
-        badge = document.createElement('span');
-        badge.id = `badge-${messageId}-${emoji}`;
-        badge.className = 'text-[10px] px-1.5 py-0.5 rounded bg-[var(--accent-muted)] text-theme-accent border border-[var(--border-subtle)]';
-        badge.innerText = `${emoji} 1`;
-        box.appendChild(badge);
+    // Toggle a user's reaction on a message. Returns 'add' | 'remove' | null.
+    function toggleReactionForUser(messageId, emoji, userId) {
+      const msg = messagesMap.get(messageId);
+      if (!msg) return null;
+      if (!msg.reactions) msg.reactions = {};
+      const list = (msg.reactions[emoji] || []).slice();
+      const idx = list.indexOf(userId);
+      let action;
+      if (idx === -1) {
+        list.push(userId);
+        action = 'add';
       } else {
-        const parts = badge.innerText.split(' ');
-        const count = parseInt(parts[1] || '1', 10) + 1;
-        badge.innerText = `${emoji} ${count}`;
+        list.splice(idx, 1);
+        action = 'remove';
       }
+      if (list.length) {
+        msg.reactions[emoji] = list;
+      } else {
+        delete msg.reactions[emoji];
+      }
+      return action;
+    }
+
+    // Apply a reaction change coming from a peer.
+    function applyPeerReaction(messageId, emoji, userId, action) {
+      const msg = messagesMap.get(messageId);
+      if (!msg) return;
+      if (!msg.reactions) msg.reactions = {};
+      const list = (msg.reactions[emoji] || []).slice();
+      const idx = list.indexOf(userId);
+      if ((action === 'add' || !action) && idx === -1) list.push(userId);
+      if (action === 'remove' && idx !== -1) list.splice(idx, 1);
+      if (list.length) {
+        msg.reactions[emoji] = list;
+      } else {
+        delete msg.reactions[emoji];
+      }
+      saveMessageToVault(msg);
+      renderReactionsBox(messageId);
+    }
+
+    // Re-render all reaction badges for a message.
+    function renderReactionsBox(messageId) {
+      const box = document.getElementById('react-box-' + messageId);
+      const msg = messagesMap.get(messageId);
+      if (!box || !msg) return;
+      box.innerHTML = '';
+      renderReactionsInto(box, msg.reactions, messageId);
+    }
+
+    // Render reaction badges into a provided container element.
+    function renderReactionsInto(box, reactions, messageId) {
+      if (!box || !reactions) return;
+      Object.entries(reactions).forEach(([emoji, userIds]) => {
+        if (!userIds || userIds.length === 0) return;
+        const badge = document.createElement('span');
+        badge.className = 'text-[10px] px-1.5 py-0.5 rounded bg-[var(--accent-muted)] text-theme-accent border border-[var(--border-subtle)] cursor-pointer';
+        badge.innerText = `${emoji} ${userIds.length}`;
+        badge.onclick = () => sendReaction(messageId, emoji);
+        box.appendChild(badge);
+      });
+    }
+
+    // Used by appendMessage() when restoring messages that already have reactions.
+    function renderReactionsInBox(box, messageId, reactions) {
+      renderReactionsInto(box, reactions, messageId);
     }
 
     // ==================== JOIN FLOW ====================
@@ -1314,6 +2167,12 @@
         window.location.hash = encodeURIComponent(currentPasskey);
 
         playBeep(440, 660);
+
+        // Load previously persisted messages for this room from local IndexedDB vault
+        const restored = await loadVaultMessagesForCurrentRoom();
+        if (restored > 0) {
+          showToast(`Restored ${restored} messages from local encrypted vault.`);
+        }
       } catch (err) {
         console.error('Setup crypto error:', err);
         showToast('Key derivation error: ' + err.message);
@@ -1404,6 +2263,16 @@
           const isSelf = data.sender.id === currentUser.id;
           appendMessage(data, isSelf);
           if (!isSelf) playBeep(587, 880);
+        } else if (data.type === 'edit_message') {
+          const cached = messagesMap.get(data.messageId);
+          if (cached) {
+            cached.text = data.text;
+            cached.isEdited = true;
+            updateMessageDOM(cached);
+            saveMessageToVault(cached);
+          }
+        } else if (data.type === 'unsend_message') {
+          handleLocalUnsend(data.messageId);
         } else if (data.type === 'system') {
           const sys = document.createElement('div');
           sys.className = 'text-center my-2 text-[11px] text-theme-dim font-mono';
@@ -1411,7 +2280,8 @@
           messagesContainer.appendChild(sys);
           messagesContainer.scrollTop = messagesContainer.scrollHeight;
         } else if (data.type === 'reaction') {
-          applyLocalReaction(data.messageId, data.emoji);
+          if (data.userId === currentUser.id) return; // ignore own echo
+          applyPeerReaction(data.messageId, data.emoji, data.userId, data.action);
         } else if (data.type === 'typing' && data.userId !== currentUser.id) {
           const indicator = document.getElementById('typingIndicator');
           if (data.isTyping) {
@@ -1440,14 +2310,165 @@
       }
     }
 
+    // Helper to get media with Studio Audio constraints
+    async function getMediaStream(type) {
+      const audioConstraints = studioAudioEnabled ? {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+        channelCount: 2,
+        sampleRate: 48000
+      } : true;
+
+      return await navigator.mediaDevices.getUserMedia({
+        audio: audioConstraints,
+        video: type === 'video' ? {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: 'user'
+        } : false
+      });
+    }
+
+    // WebRTC DataChannel setup for 100MB+ Direct Peer File Sharing
+    function setupDataChannel(channel) {
+      fileDataChannel = channel;
+      fileDataChannel.binaryType = 'arraybuffer';
+
+      fileDataChannel.onopen = () => {
+        p2pFileTransferActive = true;
+      };
+
+      fileDataChannel.onclose = () => {
+        p2pFileTransferActive = false;
+      };
+
+      fileDataChannel.onmessage = async (event) => {
+        if (typeof event.data === 'string') {
+          // Metadata message
+          try {
+            const parsed = JSON.parse(event.data);
+            if (parsed.action === 'start') {
+              incomingFileTransfers[parsed.id] = {
+                id: parsed.id,
+                name: parsed.name,
+                size: parsed.size,
+                type: parsed.type,
+                sender: parsed.sender,
+                receivedChunks: [],
+                totalReceived: 0,
+                totalChunks: parsed.totalChunks
+              };
+              showToast(`Receiving P2P file: ${parsed.name} (${formatFileSize(parsed.size)})`);
+            } else if (parsed.action === 'complete') {
+              const transfer = incomingFileTransfers[parsed.id];
+              if (transfer) {
+                const combinedBlob = new Blob(transfer.receivedChunks, { type: transfer.type || 'application/octet-stream' });
+                const blobUrl = URL.createObjectURL(combinedBlob);
+                const msgObj = {
+                  type: 'file_share',
+                  id: 'p2p-msg-' + Date.now(),
+                  sender: transfer.sender,
+                  text: `Shared high-speed P2P file: ${transfer.name}`,
+                  file: {
+                    name: transfer.name,
+                    size: transfer.size,
+                    type: transfer.type,
+                    data: blobUrl
+                  },
+                  timestamp: Date.now()
+                };
+                appendMessage(msgObj, false);
+                delete incomingFileTransfers[parsed.id];
+                showToast(`P2P File complete: ${transfer.name}`);
+              }
+            }
+          } catch (e) {
+            console.error('DataChannel metadata error:', e);
+          }
+        } else if (event.data instanceof ArrayBuffer) {
+          // Binary chunk received (first 36 bytes can hold header or sequential matching)
+          const activeKeys = Object.keys(incomingFileTransfers);
+          if (activeKeys.length > 0) {
+            const currentTransfer = incomingFileTransfers[activeKeys[0]];
+            currentTransfer.receivedChunks.push(event.data);
+            currentTransfer.totalReceived += event.data.byteLength;
+          }
+        }
+      };
+    }
+
+    // Send Large File (100MB+) via P2P DataChannel
+    async function sendFileViaDataChannel(file) {
+      if (!fileDataChannel || fileDataChannel.readyState !== 'open') {
+        showToast('P2P DataChannel not open. Waiting for peer...');
+        return false;
+      }
+
+      const transferId = 'p2p-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6);
+      const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+
+      // 1. Send start handshake
+      fileDataChannel.send(JSON.stringify({
+        action: 'start',
+        id: transferId,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        totalChunks: totalChunks,
+        sender: currentUser
+      }));
+
+      // 2. Stream array buffer in 64KB chunks
+      let offset = 0;
+      let chunkIdx = 0;
+      showToast(`P2P sending ${file.name} (0%)...`);
+
+      while (offset < file.size) {
+        // Handle DataChannel backpressure
+        if (fileDataChannel.bufferedAmount > 8 * 1024 * 1024) {
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
+
+        const slice = file.slice(offset, offset + CHUNK_SIZE);
+        const buffer = await slice.arrayBuffer();
+        fileDataChannel.send(buffer);
+
+        offset += CHUNK_SIZE;
+        chunkIdx++;
+      }
+
+      // 3. Send complete handshake
+      fileDataChannel.send(JSON.stringify({
+        action: 'complete',
+        id: transferId
+      }));
+
+      // Local preview in chat
+      const localUrl = URL.createObjectURL(file);
+      const msgObj = {
+        type: 'file_share',
+        id: 'p2p-msg-' + Date.now(),
+        sender: currentUser,
+        text: `Sent high-speed P2P file: ${file.name}`,
+        file: {
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          data: localUrl
+        },
+        timestamp: Date.now()
+      };
+      appendMessage(msgObj, true);
+      showToast(`P2P transfer complete: ${file.name}`);
+      return true;
+    }
+
     // ==================== WEBRTC VOICE & VIDEO CALL LOGIC ====================
     async function startCall(type) {
       currentCallType = type;
       try {
-        localStream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-          video: type === 'video'
-        });
+        localStream = await getMediaStream(type);
 
         document.getElementById('localVideo').srcObject = localStream;
         if (type === 'voice') {
@@ -1461,6 +2482,14 @@
         }
 
         peerConnection = new RTCPeerConnection(RTC_CONFIG);
+
+        // Create P2P DataChannel on the initiating peer
+        const dc = peerConnection.createDataChannel('fileTransfer', { ordered: true });
+        setupDataChannel(dc);
+
+        peerConnection.ondatachannel = (e) => {
+          setupDataChannel(e.channel);
+        };
 
         localStream.getTracks().forEach(track => {
           peerConnection.addTrack(track, localStream);
@@ -1519,10 +2548,7 @@
       currentCallType = type;
 
       try {
-        localStream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-          video: type === 'video'
-        });
+        localStream = await getMediaStream(type);
 
         document.getElementById('localVideo').srcObject = localStream;
         if (type === 'voice') {
@@ -1536,6 +2562,10 @@
         }
 
         peerConnection = new RTCPeerConnection(RTC_CONFIG);
+
+        peerConnection.ondatachannel = (e) => {
+          setupDataChannel(e.channel);
+        };
 
         localStream.getTracks().forEach(track => {
           peerConnection.addTrack(track, localStream);
@@ -1644,6 +2674,13 @@
         localStream = null;
       }
 
+      if (screenStream) {
+        screenStream.getTracks().forEach(track => track.stop());
+        screenStream = null;
+        isScreenSharing = false;
+        document.getElementById('screenShareIcon').className = 'w-5 h-5 text-theme-muted';
+      }
+
       if (peerConnection) {
         peerConnection.close();
         peerConnection = null;
@@ -1665,12 +2702,116 @@
       showToast(isMicMuted ? 'Microphone muted' : 'Microphone unmuted');
     };
 
+    // Studio Audio constraints toggle (Noise Suppression, Echo Cancellation, Auto Gain)
+    document.getElementById('toggleStudioAudioBtn').onclick = async () => {
+      studioAudioEnabled = !studioAudioEnabled;
+      const btn = document.getElementById('toggleStudioAudioBtn');
+      if (studioAudioEnabled) {
+        btn.className = 'p-3 rounded-2xl bg-theme-elevated hover:bg-theme-surface text-emerald-400 border border-emerald-500/30 transition-colors cursor-pointer text-xs font-mono flex items-center gap-1.5';
+        showToast('Studio Audio: Noise suppression & Echo cancellation ON');
+      } else {
+        btn.className = 'p-3 rounded-2xl bg-theme-elevated hover:bg-theme-surface text-theme-dim border border-theme-subtle transition-colors cursor-pointer text-xs font-mono flex items-center gap-1.5';
+        showToast('Studio Audio: Raw audio mode (DSP off)');
+      }
+
+      // Re-apply track constraints if call active
+      if (localStream) {
+        localStream.getAudioTracks().forEach(track => {
+          track.applyConstraints({
+            noiseSuppression: studioAudioEnabled,
+            echoCancellation: studioAudioEnabled,
+            autoGainControl: studioAudioEnabled
+          }).catch(e => console.warn('Constraint apply:', e));
+        });
+      }
+    };
+
     document.getElementById('toggleCameraBtn').onclick = () => {
       if (!localStream || currentCallType !== 'video') return;
       isCameraOff = !isCameraOff;
       localStream.getVideoTracks().forEach(t => t.enabled = !isCameraOff);
       document.getElementById('cameraIcon').className = isCameraOff ? 'w-5 h-5 text-rose-500' : 'w-5 h-5 text-theme-accent';
       showToast(isCameraOff ? 'Camera turned off' : 'Camera turned on');
+    };
+
+    // Screen Sharing via getDisplayMedia
+    document.getElementById('toggleScreenShareBtn').onclick = async () => {
+      if (!peerConnection) {
+        showToast('Start or accept a call to share your screen.');
+        return;
+      }
+
+      if (!isScreenSharing) {
+        try {
+          screenStream = await navigator.mediaDevices.getDisplayMedia({
+            video: { cursor: 'always' },
+            audio: false
+          });
+
+          const screenTrack = screenStream.getVideoTracks()[0];
+          const sender = peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+
+          if (sender) {
+            sender.replaceTrack(screenTrack);
+          } else {
+            peerConnection.addTrack(screenTrack, screenStream);
+          }
+
+          document.getElementById('localVideo').srcObject = screenStream;
+          isScreenSharing = true;
+          document.getElementById('screenShareIcon').className = 'w-5 h-5 text-emerald-400';
+          showToast('Screen sharing started');
+
+          screenTrack.onended = () => {
+            stopScreenSharing();
+          };
+        } catch (err) {
+          console.warn('Screen share canceled/denied:', err);
+        }
+      } else {
+        stopScreenSharing();
+      }
+    };
+
+    function stopScreenSharing() {
+      if (!isScreenSharing) return;
+      if (screenStream) {
+        screenStream.getTracks().forEach(t => t.stop());
+        screenStream = null;
+      }
+      if (localStream && peerConnection) {
+        const camTrack = localStream.getVideoTracks()[0];
+        const sender = peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+        if (sender && camTrack) {
+          sender.replaceTrack(camTrack);
+        }
+        document.getElementById('localVideo').srcObject = localStream;
+      }
+      isScreenSharing = false;
+      document.getElementById('screenShareIcon').className = 'w-5 h-5 text-theme-muted';
+      showToast('Screen sharing stopped');
+    }
+
+    // Picture-in-Picture (PiP) Floating Video
+    document.getElementById('togglePipBtn').onclick = async () => {
+      const remoteVid = document.getElementById('remoteVideo');
+      const localVid = document.getElementById('localVideo');
+      const targetVid = (remoteStream && remoteStream.getVideoTracks().length > 0) ? remoteVid : localVid;
+
+      try {
+        if (document.pictureInPictureElement) {
+          await document.exitPictureInPicture();
+          showToast('Exited Picture-in-Picture');
+        } else if (document.pictureInPictureEnabled) {
+          await targetVid.requestPictureInPicture();
+          showToast('Picture-in-Picture window activated');
+        } else {
+          showToast('Picture-in-Picture is not supported in this browser.');
+        }
+      } catch (e) {
+        console.warn('PiP error:', e);
+        showToast('Could not enter Picture-in-Picture.');
+      }
     };
 
     document.getElementById('minimizeCallBtn').onclick = () => {
@@ -1771,10 +2912,23 @@
       if (file) handleSelectedFile(file);
     };
 
-    function handleSelectedFile(file) {
-      if (file.size > 15 * 1024 * 1024) {
-        showToast('Files over 15MB are not recommended for direct peer transfer.');
+    async function handleSelectedFile(file) {
+      if (file.size > 250 * 1024 * 1024) {
+        showToast('Maximum supported P2P file size is 250MB.');
         return;
+      }
+
+      // If file is > 10MB and P2P DataChannel is active, route directly or offer P2P
+      if (file.size > 8 * 1024 * 1024) {
+        if (fileDataChannel && fileDataChannel.readyState === 'open') {
+          showToast(`Sending large file (${formatFileSize(file.size)}) via WebRTC P2P DataChannel...`);
+          await sendFileViaDataChannel(file);
+          fileInput.value = '';
+          return;
+        } else {
+          showToast(`File size is ${formatFileSize(file.size)}. Large files (>8MB) require an active P2P call/data channel.`);
+          return;
+        }
       }
 
       const reader = new FileReader();
@@ -1783,7 +2937,8 @@
           name: file.name,
           size: file.size,
           type: file.type,
-          data: re.target.result
+          data: re.target.result,
+          rawFile: file
         };
 
         document.getElementById('filePreviewName').innerText = file.name;
@@ -1908,6 +3063,59 @@
     document.getElementById('cancelReplyBtn').onclick = () => {
       replyingMessage = null;
       document.getElementById('replyBanner').classList.add('hidden');
+    };
+
+    // ==================== VAULT UI EVENT LISTENERS ====================
+    const vaultModal = document.getElementById('vaultModal');
+    const headerVaultBtn = document.getElementById('headerVaultBtn');
+    const closeVaultModalBtn = document.getElementById('closeVaultModalBtn');
+    const vaultAutoSaveToggle = document.getElementById('vaultAutoSaveToggle');
+    const exportBackupBtn = document.getElementById('exportBackupBtn');
+    const importBackupBtn = document.getElementById('importBackupBtn');
+    const importBackupInput = document.getElementById('importBackupInput');
+    const nukeVaultBtn = document.getElementById('nukeVaultBtn');
+
+    vaultAutoSaveToggle.checked = isVaultPersistenceEnabled;
+    vaultAutoSaveToggle.onchange = (e) => {
+      isVaultPersistenceEnabled = e.target.checked;
+      localStorage.setItem('passchat_vault_enabled', String(isVaultPersistenceEnabled));
+      showToast(isVaultPersistenceEnabled ? 'Local message persistence enabled' : 'Local persistence disabled (incognito mode)');
+    };
+
+    headerVaultBtn.onclick = () => {
+      updateVaultStats();
+      const topicEl = document.getElementById('vaultRoomTopic');
+      if (topicEl) {
+        topicEl.innerText = currentPasskey ? 'Passkey: ' + currentPasskey : 'Active Room';
+      }
+      vaultModal.classList.remove('hidden');
+    };
+
+    closeVaultModalBtn.onclick = () => {
+      vaultModal.classList.add('hidden');
+    };
+
+    exportBackupBtn.onclick = () => {
+      exportEncryptedVaultFile();
+    };
+
+    importBackupBtn.onclick = () => {
+      importBackupInput.click();
+    };
+
+    importBackupInput.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        importEncryptedVaultFile(file);
+      }
+      importBackupInput.value = '';
+    };
+
+    nukeVaultBtn.onclick = () => {
+      if (confirm('CRITICAL ACTION: Shred and erase all encrypted message history stored in your browser for this room? This cannot be undone.')) {
+        nukeCurrentRoomVault();
+        vaultModal.classList.add('hidden');
+      }
     };
 
     // Header Actions
