@@ -58,18 +58,18 @@ const rooms = new Map<string, Room>();
 
 // Seed default rooms for quick testing
 function seedDefaultRooms() {
-  if (!rooms.has('lounge')) {
-    rooms.set('lounge', {
-      id: 'lounge',
-      name: 'Main Lounge ☕',
-      passKey: 'lounge',
+  if (!rooms.has('lobby')) {
+    rooms.set('lobby', {
+      id: 'lobby',
+      name: 'Main Lounge',
+      passKey: 'welcome123',
       createdAt: Date.now() - 3600000,
       creatorName: 'System',
       theme: 'indigo',
       messages: [
         {
           id: 'm-sys-1',
-          roomId: 'lounge',
+          roomId: 'lobby',
           sender: {
             id: 'system',
             name: 'PassChat Bot',
@@ -77,8 +77,8 @@ function seedDefaultRooms() {
             avatar: '🛡️',
             joinedAt: Date.now() - 3600000,
           },
-          text: 'Welcome to PassChat! This room is protected by passkey "lounge". Only people who know the passkey can join and read messages.',
-          reactions: { '🎉': [{ userId: 'system', userName: 'System' }] },
+          text: 'Welcome to PassChat! This room is protected by pass key "welcome123". Only people who know the key can join and read messages.',
+          reactions: { '🎉': ['System'] },
           timestamp: Date.now() - 3600000,
           system: true,
         },
@@ -90,7 +90,7 @@ function seedDefaultRooms() {
     rooms.set('dev-squad', {
       id: 'dev-squad',
       name: 'Dev Squad 💻',
-      passKey: 'dev-squad',
+      passKey: 'code404',
       createdAt: Date.now() - 1800000,
       creatorName: 'Alex',
       theme: 'emerald',
@@ -105,8 +105,8 @@ function seedDefaultRooms() {
             avatar: '⚡',
             joinedAt: Date.now() - 1800000,
           },
-          text: 'Private engineering channel. Passkey is "dev-squad". Code snippets and live chat enabled.',
-          reactions: { '🚀': [{ userId: 'alex', userName: 'Alex' }] },
+          text: 'Private engineering channel. Pass key is "code404". Code snippets and live chat enabled.',
+          reactions: { '🚀': ['Alex'] },
           timestamp: Date.now() - 1800000,
           system: true,
         },
@@ -118,7 +118,7 @@ function seedDefaultRooms() {
     rooms.set('the-vault', {
       id: 'the-vault',
       name: 'Secret Vault 🔒',
-      passKey: 'the-vault',
+      passKey: 'vault99',
       createdAt: Date.now() - 900000,
       creatorName: 'Agent-X',
       theme: 'rose',
@@ -133,8 +133,8 @@ function seedDefaultRooms() {
             avatar: '🔐',
             joinedAt: Date.now() - 900000,
           },
-          text: 'Classified channel. Protected with passkey "the-vault". Keep all discussions confidential.',
-          reactions: { '🔥': [{ userId: 'agent-x', userName: 'Agent-X' }] },
+          text: 'Classified channel. Protected with pass key "vault99". Keep all discussions confidential.',
+          reactions: { '🔥': ['Agent-X'] },
           timestamp: Date.now() - 900000,
           system: true,
         },
@@ -296,15 +296,11 @@ async function startServer() {
   const wss = new WebSocketServer({ noServer: true });
 
   server.on('upgrade', (request, socket, head) => {
-    try {
-      const url = new URL(request.url || '', 'http://localhost');
-      if (url.pathname === '/ws') {
-        wss.handleUpgrade(request, socket, head, (ws) => {
-          wss.emit('connection', ws, request);
-        });
-      }
-    } catch {
-      // Ignore other upgrade requests (e.g. Vite HMR or non-ws)
+    const { pathname } = new URL(request.url || '', `http://${request.headers.host}`);
+    if (pathname === '/ws') {
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit('connection', ws, request);
+      });
     }
   });
 

@@ -558,7 +558,7 @@ export default function App() {
             onClick={() => {
               if (currentCredentialsRef.current) {
                 const creds = currentCredentialsRef.current;
-                connectAndJoin(creds.passKey, creds.user, creds.roomId);
+                connectAndJoin(creds.passKey, creds.user);
               }
             }}
             className="flex items-center gap-1 font-semibold hover:underline"
