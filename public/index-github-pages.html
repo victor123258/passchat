@@ -1697,7 +1697,7 @@
 
       const msgDiv = document.createElement('div');
       msgDiv.id = 'msg-' + msg.id;
-      msgDiv.className = `flex gap-2.5 my-2.5 group items-start ${isSelf ? 'flex-row-reverse' : 'flex-row'}`;
+      msgDiv.className = `flex gap-2.5 my-2.5 group msg-group items-start ${isSelf ? 'flex-row-reverse' : 'flex-row'}`;
 
       const avatarDiv = document.createElement('div');
       avatarDiv.className = 'w-8 h-8 rounded-xl flex items-center justify-center text-sm border border-theme-subtle bg-theme-surface shrink-0';
@@ -1978,15 +1978,22 @@
       };
       hoverBar.appendChild(moreBtn);
 
-      // Tap-on-bubble opens action sheet on touch devices (skipped while selecting text)
+      // Tap-on-bubble reveals a compact floating action bar (skipped while selecting text)
       bubble.style.cursor = 'pointer';
       bubble.onclick = (e) => {
         // Ignore if clicking on link, button, video or range inside bubble
-        if (e.target.closest('button') || e.target.closest('video') || e.target.closest('input')) return;
-        // If the user just selected text, don't steal it with the action sheet
+        if (e.target.closest('a') || e.target.closest('button') || e.target.closest('video') || e.target.closest('input')) return;
+        // If the user just selected text, don't steal it with the action bar
         const sel = window.getSelection();
         if (sel && sel.toString().trim()) return;
-        openMessageActionSheet(msg, isSelf);
+        // Toggle the floating toolbar instead of opening the full action sheet
+        const isOpen = hoverBar.classList.contains('force-show');
+        document.querySelectorAll('.msg-hover-actions.force-show').forEach(b => b.classList.remove('force-show'));
+        document.querySelectorAll('.msg-group.tap-highlight').forEach(m => m.classList.remove('tap-highlight'));
+        if (!isOpen) {
+          hoverBar.classList.add('force-show');
+          msgDiv.classList.add('tap-highlight');
+        }
       };
 
       // Applied reactions row
@@ -2038,6 +2045,15 @@
       document.getElementById('messageActionSheet').classList.add('hidden');
       actionSheetMessageId = null;
     }
+
+    function dismissMessageToolbar() {
+      document.querySelectorAll('.msg-hover-actions.force-show').forEach(b => b.classList.remove('force-show'));
+      document.querySelectorAll('.msg-group.tap-highlight').forEach(m => m.classList.remove('tap-highlight'));
+    }
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('.msg-group')) return;
+      dismissMessageToolbar();
+    });
 
     document.getElementById('closeActionSheetBtn').onclick = closeActionSheet;
     document.getElementById('messageActionSheet').onclick = (e) => {
@@ -2753,9 +2769,12 @@
           type: 'call_answer',
           senderId: currentUser.id,
           targetPeerId: pendingOfferData.senderId,
+          answerer: currentUser,
           sdp: answer
         });
 
+        document.getElementById('voiceCallPeerName').innerText = pendingOfferData.caller.name || 'Peer';
+        document.getElementById('voiceCallAvatar').innerText = pendingOfferData.caller.avatar || '👤';
         openCallOverlay(type, 'Connected with ' + pendingOfferData.caller.name);
         startCallTimer();
         pendingOfferData = null;
@@ -2780,7 +2799,10 @@
     async function handleIncomingCallAnswer(data) {
       if (peerConnection) {
         await peerConnection.setRemoteDescription(new RTCSessionDescription(data.sdp));
-        document.getElementById('callPeerSubtitle').innerText = 'Connected with peer';
+        const peerName = (data.answerer && data.answerer.name) || 'peer';
+        document.getElementById('callPeerSubtitle').innerText = 'Connected with ' + peerName;
+        document.getElementById('voiceCallPeerName').innerText = peerName;
+        document.getElementById('voiceCallAvatar').innerText = (data.answerer && data.answerer.avatar) || '👤';
       }
     }
 
