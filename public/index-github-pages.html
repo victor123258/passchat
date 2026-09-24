@@ -1084,14 +1084,7 @@
       <!-- Quick Reactions Row -->
       <div class="mb-4">
         <span class="text-[10px] text-theme-dim uppercase tracking-wider block mb-2 font-mono">React with Emoji</span>
-        <div class="flex items-center justify-between gap-1 p-1.5 rounded-2xl bg-theme-input border border-theme-subtle">
-          <button class="sheet-react-btn text-xl p-2 rounded-xl hover-theme active:scale-90 transition-transform cursor-pointer" data-emoji="❤️">❤️</button>
-          <button class="sheet-react-btn text-xl p-2 rounded-xl hover-theme active:scale-90 transition-transform cursor-pointer" data-emoji="👍">👍</button>
-          <button class="sheet-react-btn text-xl p-2 rounded-xl hover-theme active:scale-90 transition-transform cursor-pointer" data-emoji="🔥">🔥</button>
-          <button class="sheet-react-btn text-xl p-2 rounded-xl hover-theme active:scale-90 transition-transform cursor-pointer" data-emoji="😂">😂</button>
-          <button class="sheet-react-btn text-xl p-2 rounded-xl hover-theme active:scale-90 transition-transform cursor-pointer" data-emoji="😮">😮</button>
-          <button class="sheet-react-btn text-xl p-2 rounded-xl hover-theme active:scale-90 transition-transform cursor-pointer" data-emoji="🎉">🎉</button>
-        </div>
+        <div id="sheetReactGrid" class="grid grid-cols-6 gap-1 p-1.5 rounded-2xl bg-theme-input border border-theme-subtle max-h-44 overflow-y-auto"></div>
       </div>
 
       <!-- Action Items List -->
@@ -1329,6 +1322,7 @@
 
     // Configuration
     const AVATARS = ['😀', '😄', '😊', '😎', '😍', '🥳', '😜', '🤓', '👤', '👩', '👨', '🧑', '👦', '👧', '🧔', '👳', '👮', '🕵️', '💂', '👷', '🤴', '👸', '🧙', '🧚', '🧛', '🧜', '🧝', '🧞', '🧟', '🦸', '🦹', '🤶', '🎅'];
+    const FACE_REACTIONS = ['😂', '🤣', '😊', '😍', '🥰', '😘', '😄', '😀', '🤩', '🥳', '😎', '🤗', '😁', '😅', '😆', '😉', '🙃', '😌', '😜', '🤪', '😝', '😴', '🤤', '😢', '😭', '😱', '😨', '😰', '😥', '😡', '😠', '🤬', '😤', '😔', '😞', '😖', '😩', '🤔', '🤨', '🧐', '🙄', '😮', '😲', '😳', '🥺', '😇', '🤠', '🤓', '😹', '😻', '🙈', '🙉', '🙊', '🤯', '😵', '🤢', '🤮', '🤧', '🥵', '🥶', '🤒', '🤕', '🤑', '🤡', '👻', '💀', '🤖', '🎃'];
     const MQTT_BROKERS = [
       'wss://broker.emqx.io:8084/mqtt',
       'wss://broker.hivemq.com:8884/mqtt'
@@ -2210,13 +2204,13 @@
 
       // Floating action bar with icons (revealed on hover/tap)
       const hoverBar = document.createElement('div');
-      hoverBar.className = `msg-hover-actions absolute -top-4 z-30 flex items-center gap-0.5 p-1 rounded-xl bg-theme-surface/95 backdrop-blur-md border border-theme-subtle shadow-xl ${isSelf ? 'right-0' : 'left-0'}`;
+      hoverBar.className = `msg-hover-actions absolute -top-4 z-30 flex items-center gap-0.5 flex-wrap max-w-[280px] p-1 rounded-xl bg-theme-surface/95 backdrop-blur-md border border-theme-subtle shadow-xl ${isSelf ? 'right-0' : 'left-0'}`;
 
-      // Quick Emoji Reactions
-      ['❤️', '👍', '🔥', '😂'].forEach(emo => {
+      // Face Emoji Reactions
+      FACE_REACTIONS.forEach(emo => {
         const emoBtn = document.createElement('button');
         emoBtn.type = 'button';
-        emoBtn.className = 'text-xs px-1.5 py-1 rounded-lg hover-theme active:scale-90 transition-transform cursor-pointer';
+        emoBtn.className = 'text-sm px-1 py-0.5 rounded-lg hover-theme active:scale-90 transition-transform cursor-pointer';
         emoBtn.innerText = emo;
         emoBtn.title = `React ${emo}`;
         emoBtn.onclick = (e) => {
@@ -2406,6 +2400,24 @@
         closeActionSheet();
       };
     });
+
+    // Build the action-sheet reaction grid from the shared face set
+    const sheetReactGrid = document.getElementById('sheetReactGrid');
+    if (sheetReactGrid) {
+      FACE_REACTIONS.forEach((emo) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'sheet-react-btn text-xl p-2 rounded-xl hover-theme active:scale-90 transition-transform cursor-pointer';
+        b.dataset.emoji = emo;
+        b.innerText = emo;
+        b.title = `React ${emo}`;
+        b.onclick = () => {
+          if (actionSheetMessageId) sendReaction(actionSheetMessageId, emo);
+          closeActionSheet();
+        };
+        sheetReactGrid.appendChild(b);
+      });
+    }
 
     // Update DOM when a message has been edited
     function updateMessageDOM(msg) {
