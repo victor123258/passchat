@@ -1,0 +1,6 @@
+{
+  "name": "PassChat - 1-Page Passkey Chat for GitHub Pages",
+  "description": "A single-page, real-time end-to-end encrypted chat app that joins using only a passkey. Ready to host statically on GitHub Pages with zero server setup.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
