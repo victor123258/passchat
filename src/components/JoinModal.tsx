@@ -17,7 +17,8 @@ import { UserProfile } from '../types';
 
 interface JoinModalProps {
   initialPassKey?: string;
-  onJoin: (passKey: string, user: UserProfile) => Promise<{ success: boolean; error?: string }>;
+  initialRoomId?: string;
+  onJoin: (passKey: string, user: UserProfile, roomId?: string) => Promise<{ success: boolean; error?: string }>;
   onOpenExportModal: () => void;
 }
 
@@ -26,6 +27,7 @@ const COLORS = ['#6366f1', '#10b981', '#f43f5e', '#f59e0b', '#0ea5e9', '#a855f7'
 
 export const JoinModal: React.FC<JoinModalProps> = ({
   initialPassKey = '',
+  initialRoomId = '',
   onJoin,
   onOpenExportModal,
 }) => {
@@ -55,12 +57,18 @@ export const JoinModal: React.FC<JoinModalProps> = ({
   }, [initialPassKey]);
 
   const saveUserProfile = (): UserProfile => {
+    let userId = localStorage.getItem('passchat_user_id');
+    if (!userId) {
+      userId = `u-${Math.random().toString(36).substring(2, 9)}`;
+      localStorage.setItem('passchat_user_id', userId);
+    }
+    
     localStorage.setItem('passchat_user_name', name.trim());
     localStorage.setItem('passchat_user_avatar', selectedAvatar);
     localStorage.setItem('passchat_user_color', selectedColor);
 
     return {
-      id: `u-${Math.random().toString(36).substring(2, 9)}`,
+      id: userId,
       name: name.trim() || 'Anonymous Guest',
       color: selectedColor,
       avatar: selectedAvatar,
@@ -80,7 +88,7 @@ export const JoinModal: React.FC<JoinModalProps> = ({
     setErrorMessage('');
 
     const user = saveUserProfile();
-    const result = await onJoin(cleanPass, user);
+    const result = await onJoin(cleanPass, user, initialRoomId || undefined);
     setLoading(false);
 
     if (!result.success) {

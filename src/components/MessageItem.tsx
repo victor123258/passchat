@@ -17,8 +17,8 @@ interface MessageItemProps {
   currentUser: UserProfile;
   onReact: (messageId: string, emoji: string) => void;
   onReply: (message: ChatMessage) => void;
-  onEdit: (messageId: string, text: string) => void;
-  onDelete: (messageId: string) => void;
+  onEdit: (messageId: string, text: string) => Promise<void> | void;
+  onDelete: (messageId: string) => Promise<void> | void;
   onPreviewImage?: (url: string) => void;
 }
 
@@ -63,6 +63,13 @@ export const MessageItem: React.FC<MessageItemProps> = ({
     setEditText(message.text);
     setIsEditing(false);
   };
+
+  // Sync editText with message.text when not editing
+  React.useEffect(() => {
+    if (!isEditing) {
+      setEditText(message.text);
+    }
+  }, [message.text, isEditing]);
 
   // Render System messages
   if (isSystem) {
@@ -379,9 +386,10 @@ export const MessageItem: React.FC<MessageItemProps> = ({
         {/* Reaction Badges Below Message */}
         {message.reactions && Object.keys(message.reactions).length > 0 && (
           <div className="flex flex-wrap gap-1 mt-1.5 px-1">
-            {Object.entries(message.reactions).map(([emoji, users]) => {
-              if (!users || users.length === 0) return null;
-              const hasReacted = users.includes(currentUser.id);
+            {Object.entries(message.reactions).map(([emoji, reactions]) => {
+              if (!reactions || reactions.length === 0) return null;
+              const hasReacted = reactions.some((r) => r.userId === currentUser.id);
+              const reactorNames = reactions.map((r) => r.userName).join(', ');
 
               return (
                 <button
@@ -392,10 +400,10 @@ export const MessageItem: React.FC<MessageItemProps> = ({
                       ? 'bg-indigo-950/70 border-indigo-500/80 text-indigo-300'
                       : 'bg-slate-800/80 border-slate-700/80 text-slate-300 hover:bg-slate-700'
                   }`}
-                  title={users.join(', ')}
+                  title={reactorNames}
                 >
                   <span>{emoji}</span>
-                  <span className="font-semibold text-[10px]">{users.length}</span>
+                  <span className="font-semibold text-[10px]">{reactions.length}</span>
                 </button>
               );
             })}

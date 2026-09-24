@@ -19,6 +19,11 @@ export interface ReplyInfo {
   senderName: string;
 }
 
+export interface Reaction {
+  userId: string;
+  userName: string;
+}
+
 export interface ChatMessage {
   id: string;
   roomId: string;
@@ -26,7 +31,7 @@ export interface ChatMessage {
   text: string;
   attachment?: Attachment;
   replyTo?: ReplyInfo;
-  reactions: Record<string, string[]>;
+  reactions: Record<string, Reaction[]>;
   timestamp: number;
   system?: boolean;
   isEdited?: boolean;

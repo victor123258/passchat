@@ -16,6 +16,11 @@ interface UserProfile {
   joinedAt: number;
 }
 
+interface Reaction {
+  userId: string;
+  userName: string;
+}
+
 interface ChatMessage {
   id: string;
   roomId: string;
@@ -32,7 +37,7 @@ interface ChatMessage {
     text: string;
     senderName: string;
   };
-  reactions: Record<string, string[]>; // emoji -> array of user names or ids
+  reactions: Record<string, Reaction[]>;
   timestamp: number;
   system?: boolean;
   isEdited?: boolean;
@@ -517,18 +522,21 @@ async function startServer() {
               targetMsg.reactions = {};
             }
 
-            const currentUsers = targetMsg.reactions[emoji] || [];
-            const userIdentifier = session.user.id; // Changed from name to id
+            const currentReactions = targetMsg.reactions[emoji] || [];
+            const userId = session.user.id;
+            const userName = session.user.name;
 
-            if (currentUsers.includes(userIdentifier)) {
+            const existingIndex = currentReactions.findIndex((r) => r.userId === userId);
+
+            if (existingIndex !== -1) {
               // Toggle off
-              targetMsg.reactions[emoji] = currentUsers.filter((u) => u !== userIdentifier);
+              targetMsg.reactions[emoji] = currentReactions.filter((r) => r.userId !== userId);
               if (targetMsg.reactions[emoji].length === 0) {
                 delete targetMsg.reactions[emoji];
               }
             } else {
               // Add
-              targetMsg.reactions[emoji] = [...currentUsers, userIdentifier];
+              targetMsg.reactions[emoji] = [...currentReactions, { userId, userName }];
             }
 
             broadcastToRoom(session.roomId, {

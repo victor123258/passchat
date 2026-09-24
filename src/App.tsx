@@ -48,12 +48,15 @@ export default function App() {
 
   // URL parameters for direct link joins (#passkey or ?pass=123)
   const [initialPassKey, setInitialPassKey] = useState('');
+  const [initialRoomId, setInitialRoomId] = useState('');
 
   // Socket reference
   const wsRef = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const currentCredentialsRef = useRef<{ passKey: string; user: UserProfile } | null>(null);
+  const currentCredentialsRef = useRef<{ passKey: string; user: UserProfile; roomId?: string } | null>(null);
+  const activeRoomRef = useRef<RoomDetails | null>(null);
+  const passKeyRef = useRef<string>('');
 
   // Parse URL hash or search params once on mount
   useEffect(() => {
@@ -65,6 +68,8 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     const passParam = params.get('pass');
     if (passParam) setInitialPassKey(passParam.trim());
+    const roomParam = params.get('room');
+    if (roomParam) setInitialRoomId(roomParam.trim());
   }, []);
 
   // Auto-scroll chat to bottom
@@ -81,7 +86,7 @@ export default function App() {
   }, [messages, isSearching, scrollToBottom]);
 
   // Connect & Join Room using ONLY Passkey via WebSocket
-  const connectAndJoin = useCallback((passKey: string, user: UserProfile): Promise<{ success: boolean; error?: string }> => {
+  const connectAndJoin = useCallback((passKey: string, user: UserProfile, roomId?: string): Promise<{ success: boolean; error?: string }> => {
     return new Promise((resolve) => {
       setConnecting(true);
 
@@ -114,10 +119,11 @@ export default function App() {
 
       ws.onopen = () => {
         setConnected(true);
-        // Send join payload with ONLY pass key
+        // Send join payload with ONLY pass key (and optional roomId)
         ws.send(JSON.stringify({
           type: 'join',
           passKey,
+          roomId,
           user,
         }));
       };
@@ -139,7 +145,9 @@ export default function App() {
               };
 
               setActiveRoom(roomDetails);
+              activeRoomRef.current = roomDetails;
               setCurrentPassKey(data.room.passKey || passKey);
+              passKeyRef.current = data.room.passKey || passKey;
               setCurrentUser(data.currentUser || user);
               setMembers(data.members || []);
               
@@ -172,7 +180,7 @@ export default function App() {
               setMessages(mergedMessages);
               setInRoom(true);
 
-              currentCredentialsRef.current = { passKey, user };
+              currentCredentialsRef.current = { passKey, user, roomId: roomDetails.id };
 
               // Update URL hash for easy sharing
               window.location.hash = encodeURIComponent(passKey);
@@ -191,8 +199,11 @@ export default function App() {
               // Async decrypt if needed
               const handleNewMessage = async () => {
                 let processedMsg = msg;
-                if (!msg.system && msg.text && activeRoom) {
-                  const decrypted = await decryptText(msg.text, currentPassKey, activeRoom.id);
+                const currentRoom = activeRoomRef.current;
+                const currentKey = passKeyRef.current;
+
+                if (!msg.system && msg.text && currentRoom && currentKey) {
+                  const decrypted = await decryptText(msg.text, currentKey, currentRoom.id);
                   processedMsg = { ...msg, text: decrypted };
                 }
 
@@ -253,8 +264,11 @@ export default function App() {
             case 'message_edited': {
               const handleEdit = async () => {
                 let text = data.text;
-                if (activeRoom) {
-                  text = await decryptText(data.text, currentPassKey, activeRoom.id);
+                const currentRoom = activeRoomRef.current;
+                const currentKey = passKeyRef.current;
+
+                if (currentRoom && currentKey) {
+                  text = await decryptText(data.text, currentKey, currentRoom.id);
                 }
                 setMessages((prev) =>
                   prev.map((m) => {
@@ -297,7 +311,7 @@ export default function App() {
           reconnectTimeoutRef.current = setTimeout(() => {
             const creds = currentCredentialsRef.current;
             if (creds) {
-              connectAndJoin(creds.passKey, creds.user);
+              connectAndJoin(creds.passKey, creds.user, creds.roomId);
             }
           }, 2500);
         }
@@ -389,6 +403,8 @@ export default function App() {
       } catch {}
     }
     currentCredentialsRef.current = null;
+    activeRoomRef.current = null;
+    passKeyRef.current = '';
     setInRoom(false);
     setActiveRoom(null);
     setMessages([]);
@@ -419,7 +435,12 @@ export default function App() {
       }
 
       setCurrentPassKey(newPassKey);
-      setActiveRoom((prev) => prev ? { ...prev, passKey: newPassKey } : null);
+      passKeyRef.current = newPassKey;
+      setActiveRoom((prev) => {
+        const next = prev ? { ...prev, passKey: newPassKey } : null;
+        activeRoomRef.current = next;
+        return next;
+      });
       if (currentCredentialsRef.current) {
         currentCredentialsRef.current.passKey = newPassKey;
       }
@@ -490,6 +511,7 @@ export default function App() {
       <>
         <JoinModal
           initialPassKey={initialPassKey}
+          initialRoomId={initialRoomId}
           onJoin={connectAndJoin}
           onOpenExportModal={() => setIsExportModalOpen(true)}
         />

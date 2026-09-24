@@ -10,7 +10,7 @@ import {
 import { ReplyInfo } from '../types';
 
 interface ChatInputProps {
-  onSendMessage: (text: string, replyTo?: ReplyInfo, attachment?: { type: 'image'; url: string }) => void;
+  onSendMessage: (text: string, replyTo?: ReplyInfo, attachment?: { type: 'image'; url: string }) => Promise<void> | void;
   onTyping: (isTyping: boolean) => void;
   replyTo?: ReplyInfo | null;
   onCancelReply: () => void;
