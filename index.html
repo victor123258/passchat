@@ -2,6 +2,21 @@
 <html lang="en" data-theme="obsidian">
 <head>
   <meta charset="UTF-8">
+  <script>
+    // Suppress benign preview/iframe WebSocket and HMR transport notifications
+    window.addEventListener('unhandledrejection', (e) => {
+      const msg = String(e.reason?.message || e.reason || '');
+      if (msg.includes('WebSocket') || msg.includes('vite:ws') || String(e.reason?.stack).includes('@vite/client')) {
+        e.preventDefault();
+      }
+    });
+    window.addEventListener('error', (e) => {
+      const msg = String(e.message || '');
+      if (msg.includes('WebSocket') || (e.filename && e.filename.includes('@vite/client'))) {
+        e.preventDefault();
+      }
+    });
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PassChat</title>
   <meta name="description" content="A single-page, real-time end-to-end encrypted chat app with voice calls, video calls, voice notes, and file sharing. Joins with only a passkey. Ready for GitHub Pages.">
@@ -55,21 +70,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- MQTT.js CDN for client-side serverless WebSockets & WebRTC signaling -->
   <script src="https://unpkg.com/mqtt@5.3.5/dist/mqtt.min.js"></script>
-  <script>
-    // Suppress benign preview/iframe WebSocket and HMR transport notifications
-    window.addEventListener('unhandledrejection', (e) => {
-      const msg = String(e.reason?.message || e.reason || '');
-      if (msg.includes('WebSocket') || msg.includes('vite:ws') || String(e.reason?.stack).includes('@vite/client')) {
-        e.preventDefault();
-      }
-    });
-    window.addEventListener('error', (e) => {
-      const msg = String(e.message || '');
-      if (msg.includes('WebSocket') || (e.filename && e.filename.includes('@vite/client'))) {
-        e.preventDefault();
-      }
-    });
-  </script>
   
   <style>
     /* ==================== DESIGN ARCHITECTURE & COLOR THEORY THEMES ==================== */

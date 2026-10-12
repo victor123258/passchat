@@ -292,15 +292,33 @@ async function startServer() {
     res.json({ success: true, message: 'Pass key updated successfully' });
   });
 
-  // WebSocket Server setup
-  const wss = new WebSocketServer({ noServer: true });
+  // WebSocket Server setup for chat
+  const wss = new WebSocketServer({
+    noServer: true,
+    handleProtocols: (protocols) => Array.from(protocols)[0] || false,
+  });
+
+  // Vite HMR fallback server so preview transports open cleanly with no unhandled errors
+  const viteWss = new WebSocketServer({
+    noServer: true,
+    handleProtocols: (protocols) => Array.from(protocols)[0] || false,
+  });
 
   server.on('upgrade', (request, socket, head) => {
-    const { pathname } = new URL(request.url || '', `http://${request.headers.host}`);
-    if (pathname === '/ws') {
-      wss.handleUpgrade(request, socket, head, (ws) => {
-        wss.emit('connection', ws, request);
-      });
+    try {
+      const { pathname } = new URL(request.url || '', `http://${request.headers.host}`);
+      if (pathname === '/ws') {
+        wss.handleUpgrade(request, socket, head, (ws) => {
+          wss.emit('connection', ws, request);
+        });
+      } else {
+        // Upgrade Vite HMR transport request so browser socket state becomes OPEN immediately
+        viteWss.handleUpgrade(request, socket, head, (ws) => {
+          ws.on('message', () => {});
+        });
+      }
+    } catch (err) {
+      socket.destroy();
     }
   });
 
@@ -692,11 +710,10 @@ async function startServer() {
   // Vite middleware in dev or static files in production
   const isProduction = process.env.NODE_ENV === 'production';
   if (!isProduction) {
-    const isHmrDisabled = process.env.DISABLE_HMR === 'true';
     const vite = await createViteServer({
       server: {
         middlewareMode: true,
-        hmr: isHmrDisabled ? false : { server },
+        hmr: false,
       },
       appType: 'spa',
     });
