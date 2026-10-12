@@ -1,14 +1,15 @@
-# PassChat - 1-Page Passkey Suite for GitHub Pages
+# UnChater - 1-Page Passkey Suite for GitHub Pages
 
 A serverless, real-time encrypted communication suite where users **only need a passkey to join**.
 
 ## Features Included (100% 1-Page Static)
 - **Only Passkey to Join**: Enter any passkey (e.g. `coffee`, `secret99`). Anyone with the same passkey connects to the same private room.
 - **WebRTC Voice Call (P2P)**: Encrypted browser-to-browser voice calling with mute toggle, timer, and active audio indicator.
-- **WebRTC Video Call (P2P)**: High-definition video calling with Picture-in-Picture (PIP) local preview, remote video feed, camera flip/toggle, and mic controls.
-- **Voice Messages (Audio Notes)**: Record and send voice messages directly with audio waveform preview, recording timer, and integrated custom playback.
+- **WebRTC Video Call (P2P)**: High-definition video calling with Picture-in-Picture (PIP) local preview, remote video feed, camera flip/toggle, screen sharing, and mic controls.
+- **Voice Messages (Audio Notes)**: Record and send voice messages directly with audio waveform scrubber, recording timer, and integrated custom playback.
 - **File Sharing (Any File)**: Send PDFs, ZIP archives, documents, images, audio, and videos. Supports Drag-and-Drop and clipboard pasting with quick download buttons.
 - **End-to-End Encryption**: Derived from your passkey using browser WebCrypto (AES-GCM 256-bit with PBKDF2).
+- **Encrypted Local Vault (IndexedDB)**: Private on-device encrypted vault storage, exportable as `.unchater` backups.
 - **Zero Server Setup**: Ready for instant deployment on GitHub Pages.
 
 ## How to Host on GitHub Pages

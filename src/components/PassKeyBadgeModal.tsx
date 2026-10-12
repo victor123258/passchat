@@ -37,7 +37,7 @@ export const PassKeyBadgeModal: React.FC<PassKeyBadgeModalProps> = ({
 
   const handleCopyInvite = () => {
     const inviteUrl = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(room.id)}&pass=${encodeURIComponent(room.passKey || '')}`;
-    const text = `Join my private room "${room.name}" on PassChat!\n\n🔑 Room ID: ${room.id}\n🛡️ Pass Key: ${room.passKey}\n\n🔗 Direct Link: ${inviteUrl}`;
+    const text = `Join my private room "${room.name}" on UnChater!\n\n🔑 Room ID: ${room.id}\n🛡️ Pass Key: ${room.passKey}\n\n🔗 Direct Link: ${inviteUrl}`;
     navigator.clipboard.writeText(text);
     setCopiedInvite(true);
     setTimeout(() => setCopiedInvite(false), 2000);

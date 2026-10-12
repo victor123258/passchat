@@ -43,7 +43,7 @@ export default function App() {
   const [isSearching, setIsSearching] = useState(false);
   const [typingUsers, setTypingUsers] = useState<Map<string, string>>(new Map()); // id -> name
   const [soundEnabled, setSoundEnabled] = useState(() => {
-    return localStorage.getItem('passchat_sound') !== 'false';
+    return (localStorage.getItem('unchater_sound') || localStorage.getItem('passchat_sound')) !== 'false';
   });
 
   // URL parameters for direct link joins (#passkey or ?pass=123)
@@ -164,7 +164,7 @@ export default function App() {
               });
               
               const serverMessages = await Promise.all(decryptPromises);
-              const localMessagesStr = localStorage.getItem(`passchat_messages_${roomDetails.id}`);
+              const localMessagesStr = localStorage.getItem(`unchater_messages_${roomDetails.id}`) || localStorage.getItem(`passchat_messages_${roomDetails.id}`);
               let mergedMessages = serverMessages;
               
               if (localMessagesStr) {
@@ -320,7 +320,7 @@ export default function App() {
       ws.onerror = (err) => {
         console.error('WebSocket connection error:', err);
         clearTimeout(timeout);
-        finishResolve({ success: false, error: 'Could not connect to PassChat server.' });
+        finishResolve({ success: false, error: 'Could not connect to UnChater server.' });
       };
     });
   }, [inRoom, currentUser, soundEnabled]);
@@ -455,7 +455,7 @@ export default function App() {
   const toggleSound = () => {
     setSoundEnabled((prev) => {
       const next = !prev;
-      localStorage.setItem('passchat_sound', String(next));
+      localStorage.setItem('unchater_sound', String(next));
       return next;
     });
   };
@@ -463,7 +463,7 @@ export default function App() {
   // Persistence: Save messages to localStorage when they change
   useEffect(() => {
     if (inRoom && activeRoom && messages.length > 0) {
-      const storageKey = `passchat_messages_${activeRoom.id}`;
+      const storageKey = `unchater_messages_${activeRoom.id}`;
       // Only keep last 100 messages for local storage to stay under 5MB
       const toSave = messages.slice(-100);
       localStorage.setItem(storageKey, JSON.stringify(toSave));
@@ -473,13 +473,13 @@ export default function App() {
   // Persistence: Save current user
   useEffect(() => {
     if (currentUser) {
-      localStorage.setItem('passchat_user', JSON.stringify(currentUser));
+      localStorage.setItem('unchater_user', JSON.stringify(currentUser));
     }
   }, [currentUser]);
 
   // Initial load from local storage
   useEffect(() => {
-    const savedUser = localStorage.getItem('passchat_user');
+    const savedUser = localStorage.getItem('unchater_user') || localStorage.getItem('passchat_user');
     if (savedUser) {
       try {
         const user = JSON.parse(savedUser);

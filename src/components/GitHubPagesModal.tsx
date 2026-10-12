@@ -119,7 +119,7 @@ export const GitHubPagesModal: React.FC<GitHubPagesModalProps> = ({ isOpen, onCl
 
             <ol className="text-xs text-slate-300 space-y-2 list-decimal list-inside leading-relaxed">
               <li>
-                Create a new repository on <span className="font-semibold text-white">GitHub</span> (e.g. <code className="text-indigo-400 font-mono">passchat</code>).
+                Create a new repository on <span className="font-semibold text-white">GitHub</span> (e.g. <code className="text-indigo-400 font-mono">unchater</code>).
               </li>
               <li>
                 Upload the downloaded <code className="text-amber-300 font-mono">index.html</code> into the root of your repository.

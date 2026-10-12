@@ -3,11 +3,51 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PassChat - 1-Page Passkey Chat with Calls & File Sharing</title>
+  <title>PassChat</title>
   <meta name="description" content="A single-page, real-time end-to-end encrypted chat app with voice calls, video calls, voice notes, and file sharing. Joins with only a passkey. Ready for GitHub Pages.">
-  <meta property="og:title" content="PassChat - 1-Page Passkey Chat with Calls & File Sharing">
-  <meta property="og:description" content="Encrypted 1-page chat app with WebRTC Voice/Video calls, audio notes, and file sharing. Joins using only a passkey. Zero backend required.">
+  <meta name="keywords" content="PassChat, passkey chat, end-to-end encrypted chat, WebRTC voice call, video call, serverless messenger, zero backend, GitHub Pages chat, P2P file sharing">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#06090e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PassChat">
+
+  <!-- OpenGraph Social Cards -->
   <meta property="og:type" content="website">
+  <meta property="og:site_name" content="PassChat">
+  <meta property="og:title" content="PassChat">
+  <meta property="og:description" content="End-to-end encrypted chat app with WebRTC voice/video calls, audio notes, and file sharing. Joins using only a passkey. Zero backend required.">
+  <meta property="og:locale" content="en_US">
+
+  <!-- Twitter / X Social Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="PassChat">
+  <meta name="twitter:description" content="End-to-end encrypted chat app with WebRTC voice/video calls, audio notes, and file sharing. Joins using only a passkey. Zero backend required.">
+
+  <!-- Schema.org Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "PassChat",
+    "applicationCategory": "CommunicationApplication",
+    "operatingSystem": "All",
+    "browserRequirements": "Requires JavaScript. Requires HTML5 WebRTC and WebCrypto support.",
+    "description": "Serverless, real-time end-to-end encrypted messenger with voice/video calls, audio notes, and file sharing. Joins instantly using only a passkey with zero backend required.",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "featureList": [
+      "Passkey-only instant room join",
+      "WebCrypto AES-256-GCM client-side encryption",
+      "WebRTC voice and video calls with screen sharing",
+      "Encrypted voice notes and file attachments",
+      "Local encrypted IndexedDB vault with backup export/import"
+    ]
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -15,6 +55,21 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- MQTT.js CDN for client-side serverless WebSockets & WebRTC signaling -->
   <script src="https://unpkg.com/mqtt@5.3.5/dist/mqtt.min.js"></script>
+  <script>
+    // Suppress benign preview/iframe WebSocket and HMR transport notifications
+    window.addEventListener('unhandledrejection', (e) => {
+      const msg = String(e.reason?.message || e.reason || '');
+      if (msg.includes('WebSocket') || msg.includes('vite:ws') || String(e.reason?.stack).includes('@vite/client')) {
+        e.preventDefault();
+      }
+    });
+    window.addEventListener('error', (e) => {
+      const msg = String(e.message || '');
+      if (msg.includes('WebSocket') || (e.filename && e.filename.includes('@vite/client'))) {
+        e.preventDefault();
+      }
+    });
+  </script>
   
   <style>
     /* ==================== DESIGN ARCHITECTURE & COLOR THEORY THEMES ==================== */

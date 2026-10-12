@@ -33,13 +33,13 @@ export const JoinModal: React.FC<JoinModalProps> = ({
 }) => {
   // User profile
   const [name, setName] = useState(() => {
-    return localStorage.getItem('passchat_user_name') || 'Guest-' + Math.floor(100 + Math.random() * 900);
+    return localStorage.getItem('unchater_user_name') || localStorage.getItem('passchat_user_name') || 'Guest-' + Math.floor(100 + Math.random() * 900);
   });
   const [selectedAvatar, setSelectedAvatar] = useState(() => {
-    return localStorage.getItem('passchat_user_avatar') || '👤';
+    return localStorage.getItem('unchater_user_avatar') || localStorage.getItem('passchat_user_avatar') || '👤';
   });
   const [selectedColor, setSelectedColor] = useState(() => {
-    return localStorage.getItem('passchat_user_color') || '#6366f1';
+    return localStorage.getItem('unchater_user_color') || localStorage.getItem('passchat_user_color') || '#6366f1';
   });
 
   // Only passkey is required!
@@ -57,15 +57,15 @@ export const JoinModal: React.FC<JoinModalProps> = ({
   }, [initialPassKey]);
 
   const saveUserProfile = (): UserProfile => {
-    let userId = localStorage.getItem('passchat_user_id');
+    let userId = localStorage.getItem('unchater_user_id') || localStorage.getItem('passchat_user_id');
     if (!userId) {
       userId = `u-${Math.random().toString(36).substring(2, 9)}`;
-      localStorage.setItem('passchat_user_id', userId);
+      localStorage.setItem('unchater_user_id', userId);
     }
     
-    localStorage.setItem('passchat_user_name', name.trim());
-    localStorage.setItem('passchat_user_avatar', selectedAvatar);
-    localStorage.setItem('passchat_user_color', selectedColor);
+    localStorage.setItem('unchater_user_name', name.trim());
+    localStorage.setItem('unchater_user_avatar', selectedAvatar);
+    localStorage.setItem('unchater_user_color', selectedColor);
 
     return {
       id: userId,
@@ -128,7 +128,7 @@ export const JoinModal: React.FC<JoinModalProps> = ({
             <KeyRound className="w-7 h-7 text-amber-400" />
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-white">
-            Pass<span className="text-indigo-400">Chat</span>
+            Un<span className="text-indigo-400">Chater</span>
           </h1>
           <p className="mt-1 text-xs sm:text-sm text-slate-400">
             Enter only a passkey to join. Anyone with the same passkey connects to the same private chat.
