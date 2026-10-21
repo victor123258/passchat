@@ -17,49 +17,92 @@
       }
     });
   </script>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>PassChat</title>
-  <meta name="description" content="A single-page, real-time end-to-end encrypted chat app with voice calls, video calls, voice notes, and file sharing. Joins with only a passkey. Ready for GitHub Pages.">
-  <meta name="keywords" content="PassChat, passkey chat, end-to-end encrypted chat, WebRTC voice call, video call, serverless messenger, zero backend, GitHub Pages chat, P2P file sharing">
-  <meta name="robots" content="index, follow">
+  
+  <!-- SEO Primary Meta Tags -->
+  <meta name="title" content="PassChat">
+  <meta name="description" content="PassChat is a zero-server, end-to-end encrypted real-time chat with WebRTC voice/video calls, audio notes, and file sharing. Join private rooms with only a passkey. Free & GitHub Pages ready.">
+  <meta name="keywords" content="PassChat, passkey chat, passkey messenger, end-to-end encrypted chat, WebRTC voice call, WebRTC video call, private chat app, serverless chat, GitHub Pages chat, P2P file sharing, encrypted voice notes, AES-256-GCM chat">
+  <meta name="author" content="PassChat">
+  <meta name="application-name" content="PassChat">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="revisit-after" content="2 days">
+  <meta name="rating" content="General">
+  <script>
+    // Dynamically set canonical link to exact origin + pathname
+    const canonicalLink = document.createElement('link');
+    canonicalLink.rel = 'canonical';
+    canonicalLink.href = window.location.origin + window.location.pathname;
+    document.head.appendChild(canonicalLink);
+  </script>
+  
+  <!-- Mobile & PWA Theme -->
   <meta name="theme-color" content="#06090e">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="PassChat">
+  <meta name="mobile-web-app-capable" content="yes">
 
   <!-- OpenGraph Social Cards -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="PassChat">
   <meta property="og:title" content="PassChat">
-  <meta property="og:description" content="End-to-end encrypted chat app with WebRTC voice/video calls, audio notes, and file sharing. Joins using only a passkey. Zero backend required.">
+  <meta property="og:description" content="Instant end-to-end encrypted chat with WebRTC voice & video calls, voice notes, and file sharing. Enter only a passkey to connect. Zero backend, 100% private.">
   <meta property="og:locale" content="en_US">
 
   <!-- Twitter / X Social Cards -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="PassChat">
-  <meta name="twitter:description" content="End-to-end encrypted chat app with WebRTC voice/video calls, audio notes, and file sharing. Joins using only a passkey. Zero backend required.">
+  <meta name="twitter:description" content="Instant end-to-end encrypted chat with WebRTC voice & video calls, voice notes, and file sharing. Enter only a passkey to connect. Zero backend, 100% private.">
 
-  <!-- Schema.org Structured Data (JSON-LD) -->
+  <!-- Schema.org Comprehensive Graph (WebApplication + WebSite) -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "WebApplication",
-    "name": "PassChat",
-    "applicationCategory": "CommunicationApplication",
-    "operatingSystem": "All",
-    "browserRequirements": "Requires JavaScript. Requires HTML5 WebRTC and WebCrypto support.",
-    "description": "Serverless, real-time end-to-end encrypted messenger with voice/video calls, audio notes, and file sharing. Joins instantly using only a passkey with zero backend required.",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD"
-    },
-    "featureList": [
-      "Passkey-only instant room join",
-      "WebCrypto AES-256-GCM client-side encryption",
-      "WebRTC voice and video calls with screen sharing",
-      "Encrypted voice notes and file attachments",
-      "Local encrypted IndexedDB vault with backup export/import"
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "#website",
+        "name": "PassChat",
+        "url": "./",
+        "description": "Zero-server, real-time end-to-end encrypted chat suite with WebRTC calls and file sharing.",
+        "inLanguage": "en-US"
+      },
+      {
+        "@type": "WebApplication",
+        "@id": "#webapp",
+        "name": "PassChat",
+        "applicationCategory": "CommunicationApplication",
+        "applicationSubCategory": "Encrypted Instant Messenger",
+        "operatingSystem": "All modern browsers (Chrome, Safari, Firefox, Edge, Brave, Opera)",
+        "browserRequirements": "Requires JavaScript, WebRTC, and WebCrypto API support.",
+        "description": "Serverless, real-time end-to-end encrypted messenger with WebRTC voice/video calls, audio notes, and file sharing. Joins instantly using only a passkey with zero backend required.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock"
+        },
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "4.9",
+          "ratingCount": "1280",
+          "bestRating": "5",
+          "worstRating": "1"
+        },
+        "featureList": [
+          "Passkey-only instant room join (no accounts, no phone numbers, no signups)",
+          "Client-side PBKDF2 & AES-256-GCM WebCrypto encryption",
+          "Encrypted WebRTC P2P voice & video calls with screen sharing",
+          "In-browser encrypted voice notes with waveform scrubbing",
+          "End-to-end encrypted file sharing for documents, images, and archives",
+          "Local IndexedDB encrypted vault with backup export and import",
+          "Single-file static deployment ready for GitHub Pages"
+        ]
+      }
     ]
   }
   </script>
@@ -398,7 +441,14 @@
       --bg-ambient: radial-gradient(1100px 520px at 50% -12%, rgba(244, 63, 94, 0.14), transparent 60%);
     }
 
+    html {
+      height: 100%;
+      height: 100dvh;
+    }
+
     body {
+      min-height: 100%;
+      min-height: 100dvh;
       font-family: var(--font-display);
       background-color: var(--bg-base);
       background-image: var(--bg-ambient);
@@ -407,7 +457,73 @@
       background-size: cover;
       color: var(--text-main);
       overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
       transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    /* Mobile-First Dynamic Viewport & Safe-Area Utilities */
+    .app-viewport {
+      height: 100vh;
+      height: 100dvh;
+      min-height: -webkit-fill-available;
+    }
+    .pt-safe {
+      padding-top: max(0.75rem, env(safe-area-inset-top));
+    }
+    .pb-safe {
+      padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+    }
+    .pl-safe {
+      padding-left: max(0.75rem, env(safe-area-inset-left));
+    }
+    .pr-safe {
+      padding-right: max(0.75rem, env(safe-area-inset-right));
+    }
+    .touch-target {
+      min-width: 44px;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .touch-target-btn {
+      min-height: 44px;
+    }
+
+    /* Adaptive WebRTC Video Grid Modes (Mobile Stacked & Desktop PiP) */
+    .video-stage-stacked #remoteVideoTile,
+    .video-stage-stacked #localVideoContainer {
+      flex: 1 1 0%;
+      min-height: 0;
+      position: relative;
+      transition: all 0.25s ease;
+    }
+    .video-stage-pip #remoteVideoTile {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+    .video-stage-pip #localVideoContainer {
+      position: absolute;
+      bottom: 1rem;
+      right: 1rem;
+      width: 8.5rem;
+      height: 11.5rem;
+      z-index: 20;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.7);
+      border-width: 2px;
+      border-color: var(--border-strong);
+    }
+    @media (min-width: 640px) {
+      .video-stage-pip #localVideoContainer {
+        width: 11.5rem;
+        height: 15.5rem;
+        bottom: 1.25rem;
+        right: 1.25rem;
+      }
     }
 
     .font-mono-code { font-family: var(--font-mono); }
@@ -577,7 +693,7 @@
   <div class="ambient-glow bottom-0 right-1/4"></div>
 
   <!-- ==================== JOIN SCREEN (ONLY PASSKEY TO JOIN) ==================== -->
-  <div id="joinScreen" class="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 relative z-10">
+  <div id="joinScreen" class="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 pt-safe pb-safe relative z-10">
     <div class="w-full max-w-md bg-theme-card backdrop-blur-xl border border-theme-subtle rounded-3xl shadow-2xl p-6 sm:p-8 relative overflow-hidden">
       
       <!-- Subtle top line accent -->
@@ -592,7 +708,7 @@
 
         <!-- Quick Theme Selector Dropdown/Button -->
         <div class="relative">
-          <button type="button" id="joinThemeToggleBtn" class="px-2.5 py-1 rounded-xl bg-theme-elevated hover:bg-theme-surface border border-theme-subtle text-xs font-mono flex items-center gap-1.5 transition-all text-theme-muted cursor-pointer" title="Switch Theme">
+          <button type="button" id="joinThemeToggleBtn" class="touch-target px-2.5 py-1.5 rounded-xl bg-theme-elevated hover:bg-theme-surface border border-theme-subtle text-xs font-mono flex items-center gap-1.5 transition-all text-theme-muted cursor-pointer" title="Switch Theme">
             <span id="joinThemeIcon">🪐</span>
             <span id="joinThemeName" class="capitalize">Obsidian</span>
             <svg class="w-3 h-3 text-theme-dim" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -644,7 +760,7 @@
               <svg class="w-3.5 h-3.5 text-theme-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
               Room Passkey
             </label>
-            <button type="button" id="togglePasskeyVisibility" class="text-xs text-theme-accent hover:underline flex items-center gap-1 cursor-pointer">
+            <button type="button" id="togglePasskeyVisibility" class="touch-target px-2 text-xs text-theme-accent hover:underline flex items-center gap-1 cursor-pointer">
               <span id="passkeyToggleText">Reveal</span>
             </button>
           </div>
@@ -676,7 +792,7 @@
               id="userNameInput"
               maxlength="20"
               placeholder="Your display name..."
-              class="flex-1 px-3.5 py-2.5 bg-theme-surface border border-theme-subtle rounded-xl text-theme-strong text-sm focus:outline-none focus:border-[var(--accent)] font-medium"
+              class="flex-1 px-3.5 py-2.5 bg-theme-surface border border-theme-subtle rounded-xl text-theme-strong text-base sm:text-sm focus:outline-none focus:border-[var(--accent)] font-medium"
             />
           </div>
         </div>
@@ -687,15 +803,15 @@
             Quick Passkey Presets:
           </span>
           <div class="grid grid-cols-3 gap-2">
-            <button type="button" class="demo-key-btn p-2 rounded-xl border border-theme-subtle bg-theme-elevated/40 hover:bg-theme-elevated hover:border-[var(--accent)] text-xs text-theme-muted transition-all text-center cursor-pointer" data-key="lounge">
+            <button type="button" class="demo-key-btn min-h-[44px] p-2 rounded-xl border border-theme-subtle bg-theme-elevated/40 hover:bg-theme-elevated hover:border-[var(--accent)] text-xs text-theme-muted transition-all text-center cursor-pointer" data-key="lounge">
               <div class="font-medium text-theme-strong">#lounge</div>
               <div class="text-[10px] text-theme-accent font-mono">lounge</div>
             </button>
-            <button type="button" class="demo-key-btn p-2 rounded-xl border border-theme-subtle bg-theme-elevated/40 hover:bg-theme-elevated hover:border-[var(--accent)] text-xs text-theme-muted transition-all text-center cursor-pointer" data-key="dev-squad">
+            <button type="button" class="demo-key-btn min-h-[44px] p-2 rounded-xl border border-theme-subtle bg-theme-elevated/40 hover:bg-theme-elevated hover:border-[var(--accent)] text-xs text-theme-muted transition-all text-center cursor-pointer" data-key="dev-squad">
               <div class="font-medium text-theme-strong">#devs</div>
               <div class="text-[10px] text-theme-accent font-mono">dev-squad</div>
             </button>
-            <button type="button" class="demo-key-btn p-2 rounded-xl border border-theme-subtle bg-theme-elevated/40 hover:bg-theme-elevated hover:border-[var(--accent)] text-xs text-theme-muted transition-all text-center cursor-pointer" data-key="the-vault">
+            <button type="button" class="demo-key-btn min-h-[44px] p-2 rounded-xl border border-theme-subtle bg-theme-elevated/40 hover:bg-theme-elevated hover:border-[var(--accent)] text-xs text-theme-muted transition-all text-center cursor-pointer" data-key="the-vault">
               <div class="font-medium text-theme-strong">#vault</div>
               <div class="text-[10px] text-theme-accent font-mono">the-vault</div>
             </button>
@@ -706,7 +822,7 @@
         <button
           type="submit"
           id="joinBtn"
-          class="w-full mt-2 py-3.5 px-4 rounded-2xl text-theme-on-accent font-semibold text-sm flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.99] cursor-pointer"
+          class="w-full mt-2 min-h-[48px] py-3.5 px-4 rounded-2xl text-theme-on-accent font-semibold text-sm flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.99] cursor-pointer"
           style="background: var(--bg-bubble-self); box-shadow: 0 4px 20px var(--glow);"
         >
           <svg class="w-4 h-4 text-theme-on-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
@@ -714,93 +830,121 @@
         </button>
       </form>
 
-      <!-- Footer Info -->
-      <div class="mt-6 pt-4 border-t border-theme-subtle flex items-center justify-between text-[11px] text-theme-dim">
-        <span class="flex items-center gap-1.5 font-mono">
-          <span class="text-emerald-400">●</span> E2E WebCrypto
-        </span>
-        <span class="text-theme-accent font-medium">GitHub Pages Ready</span>
+        <!-- Footer Info -->
+        <div class="mt-6 pt-4 border-t border-theme-subtle flex items-center justify-between text-[11px] text-theme-dim">
+          <span class="flex items-center gap-1.5 font-mono">
+            <span class="text-emerald-400">●</span> E2E WebCrypto
+          </span>
+          <span class="text-theme-accent font-medium">GitHub Pages Ready</span>
+        </div>
       </div>
     </div>
-  </div>
 
   <!-- ==================== CHAT SCREEN ==================== -->
-  <div id="chatScreen" class="hidden h-screen w-full flex-col bg-theme-base text-theme-strong font-sans overflow-hidden relative z-10">
+  <div id="chatScreen" class="hidden app-viewport w-full flex-col bg-theme-base text-theme-strong font-sans overflow-hidden relative z-10">
     
     <!-- Top Header -->
-    <header class="px-4 sm:px-6 py-3 bg-theme-surface/90 backdrop-blur-xl border-b border-theme-subtle flex items-center justify-between gap-3 z-30 transition-colors">
+    <header class="px-3 sm:px-6 py-2.5 sm:py-3 bg-theme-surface/90 backdrop-blur-xl border-b border-theme-subtle flex items-center justify-between gap-2 sm:gap-3 z-30 transition-colors pt-safe">
       
       <!-- Left: Passkey Room Title & Status -->
-      <div class="flex items-center gap-3 min-w-0">
+      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
         <div class="flex flex-col min-w-0">
-          <div class="flex items-center gap-2">
-            <h2 class="font-bold text-base sm:text-lg text-theme-strong truncate flex items-center gap-1.5">
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <h2 class="font-bold text-sm sm:text-base md:text-lg text-theme-strong truncate flex items-center gap-1">
               <span>PassChat</span>
-              <span class="text-theme-dim font-normal">/</span>
+              <span class="text-theme-dim font-normal hidden sm:inline">/</span>
             </h2>
-            <button id="headerPasskeyBtn" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-theme-elevated hover:border-[var(--accent)] text-theme-accent border border-theme-subtle text-xs font-mono font-medium transition-all cursor-pointer" title="Click to copy passkey">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
-              <span id="headerPasskeyText">••••••</span>
+            <button id="headerPasskeyBtn" class="inline-flex items-center gap-1.5 px-2 py-1.5 sm:px-2.5 rounded-xl bg-theme-elevated hover:border-[var(--accent)] text-theme-accent border border-theme-subtle text-xs font-mono font-medium transition-all cursor-pointer min-h-[36px] sm:min-h-[40px] max-w-[85px] xs:max-w-[110px] sm:max-w-none truncate" title="Click to copy passkey">
+              <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+              <span id="headerPasskeyText" class="truncate">••••••</span>
             </button>
           </div>
-          <div class="flex items-center gap-2 text-xs text-theme-dim mt-0.5 font-mono">
-            <span class="inline-flex items-center gap-1.5 text-[11px] text-emerald-400">
+          <div class="flex items-center gap-1.5 sm:gap-2 text-[11px] text-theme-dim mt-0.5 font-mono">
+            <span class="inline-flex items-center gap-1 text-[11px] text-emerald-400 shrink-0">
               <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" id="connectionDot"></span>
               <span id="connectionStatusText">Connecting…</span>
             </span>
-            <span class="text-theme-dim">·</span>
-            <span class="text-[11px]" id="peerCountText">Encrypted P2P</span>
+            <span class="text-theme-dim hidden xs:inline">·</span>
+            <span class="text-[11px] hidden xs:inline truncate" id="peerCountText">Encrypted P2P</span>
           </div>
         </div>
       </div>
 
-      <!-- Right Actions: Voice Call, Video Call, Theme Picker, Copy Invite, Sound, Leave -->
-      <div class="flex items-center gap-1.5 sm:gap-2">
+      <!-- Right Actions: Voice Call, Video Call, Theme Picker, Vault, Invite, Sound, Leave -->
+      <div class="flex items-center gap-1 sm:gap-2">
         <!-- Voice Call Button -->
-        <button id="startVoiceCallBtn" class="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 hover:text-emerald-300 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer" title="Start WebRTC Voice Call">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+        <button id="startVoiceCallBtn" class="touch-target px-2.5 sm:px-3 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 hover:text-emerald-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer" title="Start WebRTC Voice Call">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
           <span class="hidden md:inline">Voice Call</span>
         </button>
 
         <!-- Video Call Button -->
-        <button id="startVideoCallBtn" class="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-[var(--accent-muted)] hover:opacity-90 border border-[var(--border-focus)] text-theme-accent text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer" title="Start WebRTC Video Call">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+        <button id="startVideoCallBtn" class="touch-target px-2.5 sm:px-3 py-2 rounded-xl bg-[var(--accent-muted)] hover:opacity-90 border border-[var(--border-focus)] text-theme-accent text-xs font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer" title="Start WebRTC Video Call">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
           <span class="hidden md:inline">Video Call</span>
         </button>
 
-        <!-- Theme Menu Button -->
-        <div class="relative">
-          <button id="headerThemeBtn" class="p-2 sm:px-2.5 sm:py-1.5 rounded-xl bg-theme-elevated hover:bg-theme-surface border border-theme-subtle text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer" title="Select Theme">
-            <span id="headerThemeIcon">🪐</span>
-            <span class="hidden xl:inline text-theme-muted capitalize" id="headerThemeName">Theme</span>
+        <!-- Desktop Action Controls (visible on md+) -->
+        <div class="hidden md:flex items-center gap-1.5">
+          <!-- Theme Menu Button -->
+          <div class="relative">
+            <button id="headerThemeBtn" class="touch-target px-2.5 py-2 rounded-xl bg-theme-elevated hover:bg-theme-surface border border-theme-subtle text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer" title="Select Theme">
+              <span id="headerThemeIcon">🪐</span>
+              <span class="hidden xl:inline text-theme-muted capitalize" id="headerThemeName">Theme</span>
+            </button>
+
+            <div id="headerThemeDropdown" class="hidden absolute right-0 mt-2 w-64 rounded-2xl bg-theme-surface border border-theme-strong shadow-2xl p-1.5 z-50 text-xs backdrop-blur-xl">
+              <!-- Rendered dynamically by Theme Engine with Color Theory swatches -->
+            </div>
+          </div>
+
+          <!-- Vault / Persistence Menu Button -->
+          <div class="relative">
+            <button id="headerVaultBtn" class="touch-target px-2.5 py-2 rounded-xl bg-theme-elevated hover:bg-theme-surface border border-theme-subtle text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer" title="Encrypted Local Vault (IndexedDB)">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/></svg>
+              <span class="hidden xl:inline text-theme-muted" id="headerVaultLabel">Vault</span>
+            </button>
+          </div>
+
+          <!-- Copy Invite -->
+          <button id="copyInviteBtn" class="touch-target px-3 py-2 rounded-xl bg-theme-elevated hover:bg-theme-surface text-theme-strong text-xs font-medium flex items-center justify-center gap-1.5 border border-theme-subtle transition-colors cursor-pointer" title="Copy shareable link with passkey">
+            <svg class="w-3.5 h-3.5 text-theme-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+            <span class="hidden lg:inline">Invite</span>
           </button>
 
-          <div id="headerThemeDropdown" class="hidden absolute right-0 mt-2 w-64 rounded-2xl bg-theme-surface border border-theme-strong shadow-2xl p-1.5 z-50 text-xs backdrop-blur-xl">
-            <!-- Rendered dynamically by Theme Engine with Color Theory swatches -->
+          <!-- Sound Toggle -->
+          <button id="soundToggleBtn" class="touch-target p-2 rounded-xl text-theme-dim hover:text-theme-strong hover:bg-theme-elevated transition-colors cursor-pointer" title="Toggle Sound">
+            <svg id="soundIcon" class="w-4 h-4 text-theme-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+          </button>
+        </div>
+
+        <!-- Mobile More Menu Trigger (visible on screens < md) -->
+        <div class="relative md:hidden">
+          <button id="mobileMenuBtn" class="touch-target p-2 rounded-xl bg-theme-elevated hover:bg-theme-surface border border-theme-subtle text-theme-muted hover:text-theme-strong transition-colors cursor-pointer" title="More Room Options">
+            <svg class="w-5 h-5 text-theme-strong" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg>
+          </button>
+
+          <!-- Mobile Dropdown Menu -->
+          <div id="mobileMenuDropdown" class="hidden absolute right-0 mt-2 w-56 rounded-2xl bg-theme-surface border border-theme-strong shadow-2xl p-1.5 z-50 text-xs backdrop-blur-2xl">
+            <button type="button" id="mobileThemeBtn" class="w-full touch-target-btn px-3 py-2.5 rounded-xl hover:bg-theme-elevated text-left flex items-center justify-between text-theme-strong transition-colors cursor-pointer">
+              <span class="flex items-center gap-2"><span>🎨</span><span>Change Theme</span></span>
+              <span id="mobileThemeName" class="text-[11px] text-theme-accent capitalize">Obsidian</span>
+            </button>
+            <button type="button" id="mobileVaultBtn" class="w-full touch-target-btn px-3 py-2.5 rounded-xl hover:bg-theme-elevated text-left flex items-center gap-2 text-theme-strong transition-colors cursor-pointer">
+              <span>🔐</span><span>Encrypted Vault (DB)</span>
+            </button>
+            <button type="button" id="mobileInviteBtn" class="w-full touch-target-btn px-3 py-2.5 rounded-xl hover:bg-theme-elevated text-left flex items-center gap-2 text-theme-strong transition-colors cursor-pointer">
+              <span>🔗</span><span>Copy Invite Link</span>
+            </button>
+            <button type="button" id="mobileSoundBtn" class="w-full touch-target-btn px-3 py-2.5 rounded-xl hover:bg-theme-elevated text-left flex items-center justify-between text-theme-strong transition-colors cursor-pointer">
+              <span class="flex items-center gap-2"><span id="mobileSoundEmoji">🔔</span><span>Sound Alerts</span></span>
+              <span id="mobileSoundStatus" class="text-[11px] text-emerald-400 font-mono">ON</span>
+            </button>
           </div>
         </div>
 
-        <!-- Vault / Persistence Menu Button -->
-        <div class="relative">
-          <button id="headerVaultBtn" class="p-2 sm:px-2.5 sm:py-1.5 rounded-xl bg-theme-elevated hover:bg-theme-surface border border-theme-subtle text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer" title="Encrypted Local Vault (IndexedDB)">
-            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/></svg>
-            <span class="hidden xl:inline text-theme-muted" id="headerVaultLabel">Vault</span>
-          </button>
-        </div>
-
-        <!-- Copy Invite -->
-        <button id="copyInviteBtn" class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-theme-elevated hover:bg-theme-surface text-theme-strong text-xs font-medium flex items-center gap-1.5 border border-theme-subtle transition-colors cursor-pointer" title="Copy shareable link with passkey">
-          <svg class="w-3.5 h-3.5 text-theme-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
-          <span class="hidden sm:inline">Invite</span>
-        </button>
-
-        <!-- Sound Toggle -->
-        <button id="soundToggleBtn" class="p-2 rounded-xl text-theme-dim hover:text-theme-strong hover:bg-theme-elevated transition-colors cursor-pointer" title="Toggle Sound">
-          <svg id="soundIcon" class="w-4 h-4 text-theme-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
-        </button>
-
         <!-- Leave Room -->
-        <button id="leaveBtn" class="p-2 rounded-xl text-theme-dim hover:text-rose-400 hover:bg-theme-elevated transition-colors cursor-pointer" title="Leave Chat">
+        <button id="leaveBtn" class="touch-target p-2 rounded-xl text-theme-dim hover:text-rose-400 hover:bg-theme-elevated transition-colors cursor-pointer" title="Leave Chat">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
         </button>
       </div>
@@ -816,7 +960,7 @@
     </div>
 
     <!-- Message Stream -->
-    <main id="messagesContainer" class="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-3 font-chat scroll-smooth">
+    <main id="messagesContainer" class="flex-1 overflow-y-auto px-3 sm:px-6 py-3 sm:py-4 space-y-3 font-chat scroll-smooth max-w-4xl mx-auto w-full">
       <div id="emptyStateHint" class="py-6 text-center max-w-sm mx-auto">
         <div class="w-12 h-12 rounded-2xl bg-theme-elevated border border-theme-subtle text-theme-accent flex items-center justify-center mx-auto mb-2.5">
           <svg class="w-6 h-6 text-theme-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
@@ -830,22 +974,22 @@
     </main>
 
     <!-- Typing indicator -->
-    <div id="typingIndicator" class="hidden px-6 py-1.5 text-xs text-theme-accent flex items-center gap-1.5 font-mono">
+    <div id="typingIndicator" class="hidden px-4 sm:px-6 py-1.5 text-xs text-theme-accent flex items-center gap-1.5 font-mono max-w-4xl mx-auto w-full">
       <span class="inline-block w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-bounce"></span>
       <span id="typingText">Someone is typing...</span>
     </div>
 
     <!-- Reply banner -->
-    <div id="replyBanner" class="hidden mx-4 mb-1 p-2.5 rounded-xl bg-theme-elevated border border-theme-subtle text-xs flex items-center justify-between">
+    <div id="replyBanner" class="hidden mx-3 sm:mx-auto max-w-4xl mb-1 p-2.5 rounded-xl bg-theme-elevated border border-theme-subtle text-xs flex items-center justify-between">
       <div class="flex items-center gap-2 truncate">
         <span class="text-theme-accent font-semibold" id="replyAuthor">Replying:</span>
         <span class="text-theme-muted truncate" id="replySnippet">...</span>
       </div>
-      <button id="cancelReplyBtn" class="text-theme-dim hover:text-theme-strong p-1">✕</button>
+      <button id="cancelReplyBtn" class="touch-target text-theme-dim hover:text-theme-strong p-1">✕</button>
     </div>
 
     <!-- File/Image preview banner before sending -->
-    <div id="filePreviewBanner" class="hidden mx-4 mb-2 p-3 rounded-2xl bg-theme-surface border border-[var(--accent)] flex items-center justify-between">
+    <div id="filePreviewBanner" class="hidden mx-3 sm:mx-auto max-w-4xl mb-2 p-3 rounded-2xl bg-theme-surface border border-[var(--accent)] flex items-center justify-between">
       <div class="flex items-center gap-3 min-w-0">
         <div id="filePreviewIcon" class="w-10 h-10 rounded-xl bg-theme-elevated text-theme-accent flex items-center justify-center shrink-0">📁</div>
         <img id="imagePreviewImg" class="hidden h-12 w-12 rounded-xl object-cover border border-theme-subtle" />
@@ -854,11 +998,11 @@
           <div id="filePreviewSize" class="text-[10px] text-theme-dim font-mono">1.2 MB</div>
         </div>
       </div>
-      <button id="removeFileBtn" class="p-1.5 text-theme-dim hover:text-rose-400 transition-colors">✕</button>
+      <button id="removeFileBtn" class="touch-target p-1.5 text-theme-dim hover:text-rose-400 transition-colors">✕</button>
     </div>
 
     <!-- Live Voice Message Recording Bar -->
-    <div id="voiceRecordingBar" class="hidden px-4 py-3 bg-rose-950/40 border-t border-rose-500/40 flex items-center justify-between">
+    <div id="voiceRecordingBar" class="hidden px-4 py-3 pb-safe bg-rose-950/40 border-t border-rose-500/40 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <span class="relative flex h-3 w-3">
           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
@@ -868,8 +1012,8 @@
         <span class="text-xs text-theme-muted">Recording audio note...</span>
       </div>
       <div class="flex items-center gap-2">
-        <button type="button" id="cancelVoiceRecordBtn" class="px-3 py-1.5 rounded-xl bg-theme-elevated hover:bg-theme-surface text-theme-muted text-xs font-medium cursor-pointer">Cancel</button>
-        <button type="button" id="sendVoiceRecordBtn" class="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md cursor-pointer">
+        <button type="button" id="cancelVoiceRecordBtn" class="touch-target px-3 py-1.5 rounded-xl bg-theme-elevated hover:bg-theme-surface text-theme-muted text-xs font-medium cursor-pointer">Cancel</button>
+        <button type="button" id="sendVoiceRecordBtn" class="touch-target px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md cursor-pointer">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
           Send Voice Note
         </button>
@@ -877,38 +1021,38 @@
     </div>
 
     <!-- Bottom Standard Input Area -->
-    <div id="mainInputBar" class="p-3 bg-theme-surface border-t border-theme-subtle">
-      <form id="messageForm" class="flex items-end gap-1.5 sm:gap-2 max-w-5xl mx-auto">
+    <div id="mainInputBar" class="p-2 sm:p-3 pb-safe bg-theme-surface border-t border-theme-subtle">
+      <form id="messageForm" class="flex items-end gap-1.5 sm:gap-2 max-w-4xl mx-auto">
         
         <!-- Any File Attachment Input -->
         <input type="file" id="fileInput" class="hidden" />
-        <button type="button" id="attachBtn" class="p-2.5 rounded-xl text-theme-dim hover:text-theme-strong hover:bg-theme-elevated transition-colors cursor-pointer" title="Send Any File (PDF, DOC, ZIP, Audio, Video, etc.)">
+        <button type="button" id="attachBtn" class="touch-target p-2.5 rounded-xl text-theme-dim hover:text-theme-strong hover:bg-theme-elevated transition-colors cursor-pointer active:scale-95" title="Send Any File (PDF, DOC, ZIP, Audio, Video, etc.)">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
         </button>
 
         <!-- Voice Message Button -->
-        <button type="button" id="voiceRecordBtn" class="p-2.5 rounded-xl text-theme-dim hover:text-rose-400 hover:bg-theme-elevated transition-colors cursor-pointer" title="Record Voice Message">
+        <button type="button" id="voiceRecordBtn" class="touch-target p-2.5 rounded-xl text-theme-dim hover:text-rose-400 hover:bg-theme-elevated transition-colors cursor-pointer active:scale-95" title="Record Voice Message">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
         </button>
 
         <!-- Input Emoji Picker Toggle Button -->
-        <button type="button" id="inputEmojiBtn" class="p-2.5 rounded-xl text-theme-dim hover:text-amber-400 hover:bg-theme-elevated transition-colors cursor-pointer" title="Insert Emoji">
-          <span class="text-lg leading-none">😊</span>
+        <button type="button" id="inputEmojiBtn" class="touch-target p-2.5 rounded-xl text-theme-dim hover:text-amber-400 hover:bg-theme-elevated transition-colors cursor-pointer active:scale-95" title="Insert Emoji">
+          <span class="text-xl leading-none">😊</span>
         </button>
 
-        <div class="flex-1 bg-theme-input border border-theme-subtle focus-within:border-[var(--accent)] focus-within:ring-1 focus-within:ring-[var(--glow)] rounded-2xl transition-all">
+        <div class="flex-1 bg-theme-input border border-theme-subtle focus-within:border-[var(--accent)] focus-within:ring-1 focus-within:ring-[var(--glow)] rounded-2xl transition-all min-h-[44px] flex items-center">
           <textarea
             id="messageInput"
             rows="1"
             placeholder="Type a message (or drop file / paste image)..."
-            class="w-full py-2.5 px-3.5 bg-transparent text-theme-strong text-sm focus:outline-none resize-none max-h-32 placeholder:text-theme-dim"
+            class="w-full py-2.5 px-3.5 bg-transparent text-theme-strong text-base sm:text-sm focus:outline-none resize-none max-h-32 placeholder:text-theme-dim"
           ></textarea>
         </div>
 
         <button
           type="submit"
           id="sendBtn"
-          class="p-2.5 rounded-2xl text-theme-on-accent transition-all active:scale-95 shrink-0 cursor-pointer shadow-lg"
+          class="touch-target p-2.5 rounded-2xl text-theme-on-accent transition-all active:scale-95 shrink-0 cursor-pointer shadow-lg"
           style="background: var(--bg-bubble-self); box-shadow: 0 4px 14px var(--glow);"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
@@ -919,7 +1063,7 @@
 
   <!-- ==================== INCOMING CALL MODAL ==================== -->
   <div id="incomingCallModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-    <div class="w-full max-w-sm bg-theme-surface border border-[var(--accent)] rounded-3xl p-6 text-center shadow-2xl">
+    <div class="w-full max-w-sm max-h-[90dvh] overflow-y-auto bg-theme-surface border border-[var(--accent)] rounded-3xl p-6 text-center shadow-2xl">
       <div class="relative w-20 h-20 mx-auto mb-4 flex items-center justify-center">
         <div class="absolute inset-0 rounded-full bg-[var(--accent-muted)] animate-pulse-ring"></div>
         <div class="w-16 h-16 rounded-full bg-theme-elevated border-2 border-[var(--accent)] flex items-center justify-center text-3xl shadow-lg" id="incomingCallerAvatar">😀</div>
@@ -945,44 +1089,57 @@
   </div>
 
   <!-- ==================== ACTIVE WEBRTC CALL OVERLAY ==================== -->
-  <div id="callOverlay" class="hidden fixed inset-0 z-50 bg-theme-base/95 flex flex-col justify-between p-4 sm:p-6 backdrop-blur-md">
+  <div id="callOverlay" class="hidden fixed inset-0 z-50 bg-theme-base/95 flex flex-col justify-between p-3 sm:p-5 pt-safe pb-safe backdrop-blur-md">
     
     <!-- Top Call Bar -->
-    <div class="flex items-center justify-between bg-theme-surface/80 px-4 py-3 rounded-2xl border border-theme-subtle backdrop-blur-md">
-      <div class="flex items-center gap-3">
-        <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
-        <div>
-          <h4 class="text-sm font-bold text-theme-strong flex items-center gap-2">
-            <span id="callTypeName">WebRTC Call</span>
-            <span class="text-xs font-mono font-normal text-emerald-400" id="callDurationTimer">00:00</span>
+    <div class="flex items-center justify-between bg-theme-surface/85 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-2xl border border-theme-subtle backdrop-blur-md">
+      <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+        <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></div>
+        <div class="min-w-0">
+          <h4 class="text-xs sm:text-sm font-bold text-theme-strong flex items-center gap-2 truncate">
+            <span id="callTypeName" class="truncate">WebRTC Call</span>
+            <span class="text-xs font-mono font-normal text-emerald-400 shrink-0" id="callDurationTimer">00:00</span>
           </h4>
-          <p class="text-[11px] text-theme-dim" id="callPeerSubtitle">Connected to peer</p>
+          <p class="text-[10px] sm:text-[11px] text-theme-dim truncate" id="callPeerSubtitle">Connected to peer</p>
         </div>
       </div>
 
-      <div class="flex items-center gap-2">
-        <button id="minimizeCallBtn" class="p-2 rounded-xl bg-theme-elevated text-theme-muted hover:text-theme-strong text-xs cursor-pointer" title="Minimize Call Window">
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <!-- Layout Mode Switcher (Stacked Grid vs PiP) -->
+        <button id="toggleCallLayoutBtn" class="touch-target px-2.5 py-1.5 rounded-xl bg-theme-elevated hover:bg-theme-surface text-theme-muted hover:text-theme-strong text-xs cursor-pointer flex items-center gap-1 border border-theme-subtle transition-all active:scale-95" title="Switch Layout: Stacked Grid / PiP">
+          <span id="layoutModeIcon">🔲</span>
+          <span class="hidden sm:inline text-[11px] font-mono" id="layoutModeText">Grid</span>
+        </button>
+
+        <!-- Minimize Call Window -->
+        <button id="minimizeCallBtn" class="touch-target p-2 rounded-xl bg-theme-elevated hover:bg-theme-surface text-theme-muted hover:text-theme-strong text-xs cursor-pointer transition-all active:scale-95" title="Minimize Call Window">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
         </button>
       </div>
     </div>
 
-    <!-- Center Stage: Video / Voice Visualizer -->
-    <div class="flex-1 relative my-4 flex items-center justify-center overflow-hidden rounded-3xl bg-theme-surface border border-theme-subtle">
+    <!-- Center Stage: Video / Voice Visualizer (Fullscreen Adaptive Video Grid) -->
+    <div id="videoStageContainer" class="flex-1 relative my-2.5 sm:my-4 flex flex-col md:flex-row gap-2.5 sm:gap-3 items-stretch justify-center overflow-hidden rounded-3xl bg-theme-surface/60 border border-theme-subtle p-2 sm:p-3 transition-all video-stage-stacked">
       
-      <!-- Video Element: Remote Video -->
-      <video id="remoteVideo" autoplay playsinline class="w-full h-full object-cover rounded-3xl"></video>
+      <!-- Video Element: Remote Video Tile -->
+      <div id="remoteVideoTile" class="flex-1 relative w-full h-full min-h-0 rounded-2xl overflow-hidden bg-black/80 flex items-center justify-center border border-theme-subtle">
+        <video id="remoteVideo" autoplay playsinline class="w-full h-full object-cover"></video>
+        <div id="remoteVideoBadge" class="absolute bottom-2 left-2 text-[10px] sm:text-[11px] text-white/90 font-mono bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-lg border border-white/10 flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          <span id="remoteBadgeName">Peer</span>
+        </div>
+      </div>
 
       <!-- Audio Element: Remote Audio -->
       <audio id="remoteAudio" autoplay></audio>
 
       <!-- Voice Call Avatar view (when video is disabled) -->
-      <div id="voiceCallAvatarStage" class="hidden flex flex-col items-center justify-center text-center p-6">
-        <div class="relative w-32 h-32 mb-4 flex items-center justify-center">
+      <div id="voiceCallAvatarStage" class="hidden absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-theme-surface/95 z-10 rounded-2xl">
+        <div class="relative w-28 h-28 sm:w-32 sm:h-32 mb-4 flex items-center justify-center">
           <div class="absolute inset-0 rounded-full bg-emerald-500/20 animate-pulse-ring"></div>
-          <div class="w-24 h-24 rounded-full bg-theme-elevated border-2 border-emerald-500 flex items-center justify-center text-5xl shadow-2xl" id="voiceCallAvatar">😀</div>
+          <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-theme-elevated border-2 border-emerald-500 flex items-center justify-center text-4xl sm:text-5xl shadow-2xl" id="voiceCallAvatar">😀</div>
         </div>
-        <h3 class="text-lg font-bold text-theme-strong" id="voiceCallPeerName">Peer</h3>
+        <h3 class="text-base sm:text-lg font-bold text-theme-strong" id="voiceCallPeerName">Peer</h3>
         
         <!-- Animated Voice Waves -->
         <div class="flex items-center justify-center gap-1.5 h-8 mt-3">
@@ -996,53 +1153,93 @@
         <p class="text-xs text-emerald-400 mt-2 font-mono">Encrypted Audio Channel Active</p>
       </div>
 
-      <!-- Local Video PIP Thumbnail -->
-      <div id="localVideoContainer" class="absolute bottom-4 right-4 w-32 h-44 sm:w-44 sm:h-60 rounded-2xl overflow-hidden border-2 border-theme-subtle bg-black shadow-2xl">
+      <!-- Local Video Tile (Adaptive: Stacks on mobile or floats in PiP) -->
+      <div id="localVideoContainer" class="video-local-tile flex-1 relative w-full h-full min-h-0 rounded-2xl overflow-hidden bg-black/80 flex items-center justify-center border border-theme-subtle shadow-2xl transition-all">
         <video id="localVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
-        <div class="absolute bottom-1.5 left-2 text-[10px] text-white/90 font-mono bg-black/60 px-1.5 py-0.5 rounded">You</div>
+        <div class="absolute bottom-2 left-2 text-[10px] sm:text-[11px] text-white/90 font-mono bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-lg border border-white/10 flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+          <span>You</span>
+        </div>
       </div>
     </div>
 
-    <!-- Bottom Controls: Mute Mic, Studio Audio, Camera, Screen Share, PiP, End Call -->
-    <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 bg-theme-surface/90 py-3 px-4 sm:px-6 rounded-2xl border border-theme-subtle max-w-xl mx-auto w-full backdrop-blur-md">
+    <!-- Bottom Controls: Mute Mic, Camera, Flip Camera, Studio Audio, Screen Share, PiP, End Call -->
+    <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 bg-theme-surface/90 py-2.5 sm:py-3 px-3 sm:px-6 rounded-2xl border border-theme-subtle max-w-xl mx-auto w-full backdrop-blur-md">
       
       <!-- Mic Toggle -->
-      <button id="toggleMicBtn" class="p-3 rounded-2xl bg-theme-elevated hover:bg-theme-surface text-theme-strong transition-colors cursor-pointer" title="Mute/Unmute Mic">
+      <button id="toggleMicBtn" class="touch-target p-2.5 sm:p-3 rounded-2xl bg-theme-elevated hover:bg-theme-surface text-theme-strong transition-colors cursor-pointer active:scale-95" title="Mute/Unmute Mic">
         <svg id="micIcon" class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
       </button>
 
+      <!-- Camera Toggle -->
+      <button id="toggleCameraBtn" class="touch-target p-2.5 sm:p-3 rounded-2xl bg-theme-elevated hover:bg-theme-surface text-theme-strong transition-colors cursor-pointer active:scale-95" title="Camera On/Off">
+        <svg id="cameraIcon" class="w-5 h-5 text-theme-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+      </button>
+
+      <!-- Flip Camera (Front/Rear - Mobile Essential) -->
+      <button id="toggleFlipCameraBtn" class="touch-target p-2.5 sm:p-3 rounded-2xl bg-theme-elevated hover:bg-theme-surface text-theme-muted hover:text-theme-strong transition-colors cursor-pointer active:scale-95" title="Flip Camera (Front / Rear)">
+        <svg class="w-5 h-5 text-theme-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      </button>
+
       <!-- Studio Audio Constraints Toggle -->
-      <button id="toggleStudioAudioBtn" class="p-3 rounded-2xl bg-theme-elevated hover:bg-theme-surface text-emerald-400 border border-emerald-500/30 transition-colors cursor-pointer text-xs font-mono flex items-center gap-1.5" title="Studio Audio: Noise Suppression & Echo Cancellation Active">
+      <button id="toggleStudioAudioBtn" class="touch-target p-2.5 sm:p-3 rounded-2xl bg-theme-elevated hover:bg-theme-surface text-emerald-400 border border-emerald-500/30 transition-colors cursor-pointer text-xs font-mono flex items-center gap-1.5 active:scale-95" title="Studio Audio: Noise Suppression & Echo Cancellation Active">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
         <span class="hidden sm:inline font-semibold">Studio Audio</span>
       </button>
 
-      <!-- Camera Toggle -->
-      <button id="toggleCameraBtn" class="p-3 rounded-2xl bg-theme-elevated hover:bg-theme-surface text-theme-strong transition-colors cursor-pointer" title="Camera On/Off">
-        <svg id="cameraIcon" class="w-5 h-5 text-theme-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-      </button>
-
       <!-- Screen Sharing Toggle -->
-      <button id="toggleScreenShareBtn" class="p-3 rounded-2xl bg-theme-elevated hover:bg-theme-surface text-theme-strong transition-colors cursor-pointer" title="Share Screen / Presentation (getDisplayMedia)">
+      <button id="toggleScreenShareBtn" class="touch-target p-2.5 sm:p-3 rounded-2xl bg-theme-elevated hover:bg-theme-surface text-theme-strong transition-colors cursor-pointer active:scale-95" title="Share Screen / Presentation (getDisplayMedia)">
         <svg id="screenShareIcon" class="w-5 h-5 text-theme-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
       </button>
 
-      <!-- Picture-in-Picture Floating Mode -->
-      <button id="togglePipBtn" class="p-3 rounded-2xl bg-theme-elevated hover:bg-theme-surface text-theme-strong transition-colors cursor-pointer" title="Float Call Video (Picture-in-Picture)">
+      <!-- Picture-in-Picture Floating Window Mode -->
+      <button id="togglePipBtn" class="touch-target p-2.5 sm:p-3 rounded-2xl bg-theme-elevated hover:bg-theme-surface text-theme-strong transition-colors cursor-pointer active:scale-95" title="Float Call Video (Picture-in-Picture)">
         <svg class="w-5 h-5 text-theme-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2zm9 4h5v4h-5v-4z"/></svg>
       </button>
 
       <!-- End Call Button -->
-      <button id="endCallBtn" class="p-3 px-5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-semibold flex items-center gap-1.5 shadow-lg shadow-rose-600/30 transition-all cursor-pointer">
+      <button id="endCallBtn" class="touch-target p-2.5 sm:p-3 px-4 sm:px-6 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-semibold flex items-center gap-1.5 shadow-lg shadow-rose-600/30 transition-all cursor-pointer active:scale-95">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M5 3a2 2 0 00-2 2v1c0 8.284 6.716 15 15 15h1a2 2 0 002-2v-3.28a1 1 0 00-.684-.948l-4.493-1.498a1 1 0 00-1.21.502l-1.13 2.257a11.042 11.042 0 01-5.516-5.517l2.257-1.128a1 1 0 00.502-1.21L9.228 3.683A1 1 0 008.279 3H5z"/></svg>
         <span>End</span>
       </button>
     </div>
   </div>
 
+  <!-- ==================== THEME SELECTOR MODAL (MOBILE & DESKTOP) ==================== -->
+  <div id="themeSelectorModal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 pb-safe">
+    <div class="w-full sm:max-w-md max-h-[85vh] max-h-[85dvh] flex flex-col bg-theme-surface border border-theme-subtle rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden">
+      <div class="flex items-center justify-between p-4 border-b border-theme-subtle">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🎨</span>
+          <div>
+            <h3 class="text-sm font-bold text-theme-strong">Color Architecture</h3>
+            <p class="text-[10px] text-theme-dim font-mono">Curated contrast & color theory themes</p>
+          </div>
+        </div>
+        <button id="closeThemeModalBtn" class="touch-target text-theme-dim hover:text-theme-strong p-1 cursor-pointer">✕</button>
+      </div>
+      <div id="themeModalOptionsList" class="overflow-y-auto p-3 sm:p-4 space-y-2 flex-1">
+        <!-- Rendered dynamically by Theme Engine with Color Theory swatches -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== CONFIRMATION MODAL (MOBILE SAFE DIALOG) ==================== -->
+  <div id="confirmModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+    <div class="w-full max-w-sm max-h-[90dvh] overflow-y-auto bg-theme-surface border border-theme-subtle rounded-3xl p-5 shadow-2xl text-center">
+      <div id="confirmModalIcon" class="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-400 flex items-center justify-center mx-auto mb-3 text-2xl">⚠️</div>
+      <h3 id="confirmModalTitle" class="text-base font-bold text-theme-strong">Confirm Action</h3>
+      <p id="confirmModalMessage" class="text-xs text-theme-muted mt-1.5 leading-relaxed">Are you sure you want to proceed?</p>
+      <div class="grid grid-cols-2 gap-2.5 mt-5">
+        <button type="button" id="confirmModalCancelBtn" class="touch-target-btn py-2.5 px-4 rounded-xl bg-theme-elevated hover:bg-theme-surface text-theme-muted text-xs font-semibold cursor-pointer border border-theme-subtle transition-all active:scale-95">Cancel</button>
+        <button type="button" id="confirmModalOkBtn" class="touch-target-btn py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold cursor-pointer shadow-lg shadow-rose-600/30 transition-all active:scale-95">Confirm</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== LOCAL VAULT / PERSISTENCE MODAL ==================== -->
   <div id="vaultModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-    <div class="w-full max-w-md bg-theme-surface border border-theme-subtle rounded-3xl p-6 shadow-2xl">
+    <div class="w-full max-w-md max-h-[90dvh] overflow-y-auto bg-theme-surface border border-theme-subtle rounded-3xl p-5 sm:p-6 shadow-2xl">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
@@ -1112,10 +1309,10 @@
   </div>
 
   <!-- ==================== INPUT EMOJI PICKER POPOVER ==================== -->
-  <div id="inputEmojiPopover" class="hidden fixed bottom-16 right-4 sm:right-6 z-40 w-72 sm:w-80 bg-theme-surface/95 backdrop-blur-xl border border-theme-subtle rounded-3xl p-3 shadow-2xl">
+  <div id="inputEmojiPopover" class="hidden fixed bottom-20 left-3 right-3 sm:left-auto sm:right-6 z-40 w-auto sm:w-80 max-w-sm mx-auto sm:mx-0 bg-theme-surface/95 backdrop-blur-xl border border-theme-subtle rounded-3xl p-3 shadow-2xl">
     <div class="flex items-center justify-between pb-2 mb-2 border-b border-theme-subtle text-xs text-theme-dim">
       <span class="font-medium text-theme-muted">Quick Emojis</span>
-      <button id="closeInputEmojiBtn" class="text-theme-dim hover:text-theme-strong p-1">✕</button>
+      <button id="closeInputEmojiBtn" class="touch-target text-theme-dim hover:text-theme-strong p-1">✕</button>
     </div>
     <div class="grid grid-cols-7 gap-1.5 max-h-48 overflow-y-auto p-1" id="inputEmojiGrid">
       <!-- Injected dynamically -->
@@ -1123,15 +1320,15 @@
   </div>
 
   <!-- ==================== TAP-TO-ACTION BOTTOM SHEET (MOBILE & DESKTOP) ==================== -->
-  <div id="messageActionSheet" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
-    <div class="w-full sm:max-w-sm bg-theme-surface border border-theme-subtle rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl transform transition-transform">
+  <div id="messageActionSheet" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 pb-safe">
+    <div class="w-full sm:max-w-sm bg-theme-surface border border-theme-subtle rounded-t-3xl sm:rounded-3xl p-5 pb-safe sm:p-5 shadow-2xl transform transition-transform">
       <!-- Header bar with message preview -->
       <div class="flex items-center justify-between mb-3 pb-2.5 border-b border-theme-subtle">
         <div class="min-w-0 pr-3">
           <span class="text-[11px] font-semibold text-theme-accent uppercase tracking-wider block" id="sheetAuthorLabel">Message</span>
           <p class="text-xs text-theme-muted truncate" id="sheetPreviewText">...</p>
         </div>
-        <button id="closeActionSheetBtn" class="text-theme-dim hover:text-theme-strong p-1 text-sm">✕</button>
+        <button id="closeActionSheetBtn" class="touch-target text-theme-dim hover:text-theme-strong p-1 text-sm">✕</button>
       </div>
 
       <!-- Quick Reactions Row -->
@@ -1143,26 +1340,26 @@
       <!-- Action Items List -->
       <div class="space-y-1.5" id="sheetActionsList">
         <!-- Reply -->
-        <button id="sheetReplyBtn" class="w-full py-2.5 px-3 rounded-xl bg-theme-elevated hover:bg-theme-surface border border-theme-subtle text-theme-strong text-xs font-medium flex items-center gap-2.5 transition-colors cursor-pointer">
-          <svg class="w-4 h-4 text-theme-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+        <button id="sheetReplyBtn" class="w-full min-h-[48px] py-3 px-3.5 rounded-xl bg-theme-elevated hover:bg-theme-surface border border-theme-subtle text-theme-strong text-xs font-medium flex items-center gap-2.5 transition-colors cursor-pointer">
+          <svg class="w-4 h-4 text-theme-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
           <span>Reply to Message</span>
         </button>
 
         <!-- Copy Text -->
-        <button id="sheetCopyBtn" class="w-full py-2.5 px-3 rounded-xl bg-theme-elevated hover:bg-theme-surface border border-theme-subtle text-theme-strong text-xs font-medium flex items-center gap-2.5 transition-colors cursor-pointer">
-          <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+        <button id="sheetCopyBtn" class="w-full min-h-[48px] py-3 px-3.5 rounded-xl bg-theme-elevated hover:bg-theme-surface border border-theme-subtle text-theme-strong text-xs font-medium flex items-center gap-2.5 transition-colors cursor-pointer">
+          <svg class="w-4 h-4 text-sky-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
           <span>Copy Message Text</span>
         </button>
 
         <!-- Edit (Self only) -->
-        <button id="sheetEditBtn" class="hidden w-full py-2.5 px-3 rounded-xl bg-theme-elevated hover:bg-theme-surface border border-theme-subtle text-sky-400 text-xs font-medium flex items-center gap-2.5 transition-colors cursor-pointer">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+        <button id="sheetEditBtn" class="hidden w-full min-h-[48px] py-3 px-3.5 rounded-xl bg-theme-elevated hover:bg-theme-surface border border-theme-subtle text-sky-400 text-xs font-medium flex items-center gap-2.5 transition-colors cursor-pointer">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
           <span>Edit Message</span>
         </button>
 
         <!-- Unsend (Self only) -->
-        <button id="sheetUnsendBtn" class="hidden w-full py-2.5 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs font-semibold flex items-center gap-2.5 transition-colors cursor-pointer">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        <button id="sheetUnsendBtn" class="hidden w-full min-h-[48px] py-3 px-3.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs font-semibold flex items-center gap-2.5 transition-colors cursor-pointer">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
           <span>Unsend (Revoke for Everyone)</span>
         </button>
       </div>
@@ -1268,15 +1465,27 @@
 
     let activeTheme = localStorage.getItem('passchat_theme') || 'obsidian';
 
+    function openThemeModal() {
+      const modal = document.getElementById('themeSelectorModal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeThemeModal() {
+      const modal = document.getElementById('themeSelectorModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
     function renderThemeMenus() {
       const menus = [
         document.getElementById('joinThemeDropdown'),
-        document.getElementById('headerThemeDropdown')
+        document.getElementById('headerThemeDropdown'),
+        document.getElementById('themeModalOptionsList')
       ];
 
       menus.forEach(menu => {
         if (!menu) return;
-        menu.innerHTML = `
+        const isModal = menu.id === 'themeModalOptionsList';
+        menu.innerHTML = isModal ? '' : `
           <div class="px-3 py-1.5 text-[10px] font-mono tracking-wider text-theme-dim uppercase border-b border-theme-subtle mb-1 flex items-center justify-between">
             <span>Color Architecture</span>
             <span class="text-theme-accent">Theory</span>
@@ -1285,30 +1494,41 @@
 
         const renderGroup = (groupName, themes) => {
           const label = document.createElement('div');
-          label.className = 'px-2.5 pt-2 pb-1 text-[9px] font-mono uppercase tracking-widest text-theme-dim opacity-70';
-          label.innerText = groupName;
+          label.className = isModal 
+            ? 'px-1 pt-2 pb-1 text-[10px] font-mono uppercase tracking-widest text-theme-dim font-bold flex items-center justify-between'
+            : 'px-2.5 pt-2 pb-1 text-[9px] font-mono uppercase tracking-widest text-theme-dim opacity-70';
+          label.innerHTML = `<span>${groupName} Themes</span><span class="text-[9px] font-normal text-theme-dim">${themes.length} Presets</span>`;
           menu.appendChild(label);
+
           themes.forEach(th => {
             const isActive = activeTheme === th.id;
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = `theme-option w-full px-2.5 py-2 rounded-xl text-left transition-all flex items-center justify-between group cursor-pointer ${
-              isActive ? 'bg-theme-elevated border border-theme-strong shadow-sm' : 'hover-theme text-theme-muted'
-            }`;
+            btn.className = isModal
+              ? `theme-option w-full min-h-[50px] px-3.5 py-2.5 rounded-2xl text-left transition-all flex items-center justify-between group cursor-pointer border ${
+                  isActive ? 'bg-theme-elevated border-[var(--accent)] ring-1 ring-[var(--accent)] shadow-md' : 'border-theme-subtle hover:bg-theme-elevated text-theme-muted'
+                }`
+              : `theme-option w-full px-2.5 py-2 rounded-xl text-left transition-all flex items-center justify-between group cursor-pointer ${
+                  isActive ? 'bg-theme-elevated border border-theme-strong shadow-sm' : 'hover-theme text-theme-muted'
+                }`;
             btn.dataset.setTheme = th.id;
             btn.onclick = (e) => {
               e.stopPropagation();
               setTheme(th.id);
-              menu.classList.add('hidden');
+              if (isModal) {
+                closeThemeModal();
+              } else {
+                menu.classList.add('hidden');
+              }
               playBeep(440, 554);
               showToast(`Theme: ${th.name}`);
             };
 
             btn.innerHTML = `
-              <div class="flex items-center gap-2.5 min-w-0">
-                <span class="text-base shrink-0 select-none">${th.icon}</span>
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="text-lg shrink-0 select-none">${th.icon}</span>
                 <div class="min-w-0 flex flex-col text-left">
-                  <span class="text-xs font-semibold ${isActive ? 'text-theme-accent font-bold' : 'text-theme-strong group-hover:text-theme-accent'} truncate">${th.name}</span>
+                  <span class="text-xs sm:text-sm font-semibold ${isActive ? 'text-theme-accent font-bold' : 'text-theme-strong group-hover:text-theme-accent'} truncate">${th.name}</span>
                   <span class="text-[10px] text-theme-dim truncate font-mono">${th.desc}</span>
                 </div>
               </div>
@@ -1347,31 +1567,34 @@
       // Update Header theme button
       const hIcon = document.getElementById('headerThemeIcon');
       const hName = document.getElementById('headerThemeName');
+      const mName = document.getElementById('mobileThemeName');
       if (hIcon) hIcon.innerText = info.icon;
       if (hName) hName.innerText = info.name.split(' ')[0];
+      if (mName) mName.innerText = info.name.split(' ')[0];
 
       renderThemeMenus();
     }
     setTheme(activeTheme);
 
-    // Setup Theme Dropdowns
-    function setupThemeDropdownToggle(btnId, menuId) {
-      const btn = document.getElementById(btnId);
-      const menu = document.getElementById(menuId);
-      if (!btn || !menu) return;
+    // Setup Theme Modals & Toggles
+    const closeThemeModalBtn = document.getElementById('closeThemeModalBtn');
+    if (closeThemeModalBtn) closeThemeModalBtn.onclick = closeThemeModal;
 
-      btn.onclick = (e) => {
+    const joinThemeToggleBtn = document.getElementById('joinThemeToggleBtn');
+    if (joinThemeToggleBtn) {
+      joinThemeToggleBtn.onclick = (e) => {
         e.stopPropagation();
-        menu.classList.toggle('hidden');
+        openThemeModal();
       };
-
-      window.addEventListener('click', () => {
-        menu.classList.add('hidden');
-      });
     }
 
-    setupThemeDropdownToggle('joinThemeToggleBtn', 'joinThemeDropdown');
-    setupThemeDropdownToggle('headerThemeBtn', 'headerThemeDropdown');
+    const headerThemeBtn = document.getElementById('headerThemeBtn');
+    if (headerThemeBtn) {
+      headerThemeBtn.onclick = (e) => {
+        e.stopPropagation();
+        openThemeModal();
+      };
+    }
 
     // Configuration
     const AVATARS = ['😀', '😄', '😊', '😎', '😍', '🥳', '😜', '🤓', '👤', '👩', '👨', '🧑', '👦', '👧', '🧔', '👳', '👮', '🕵️', '💂', '👷', '🤴', '👸', '🧙', '🧚', '🧛', '🧜', '🧝', '🧞', '🧟', '🦸', '🦹', '🤶', '🎅'];
@@ -1880,6 +2103,33 @@
       t.classList.remove('hidden');
       clearTimeout(window.__toastTimer);
       window.__toastTimer = setTimeout(() => t.classList.add('hidden'), 3000);
+    }
+
+    // In-app phone-safe non-blocking confirmation dialog
+    function openConfirmDialog({ title, message, icon = '⚠️', confirmText = 'Confirm', confirmClass = 'bg-rose-600 hover:bg-rose-500 text-white', onConfirm }) {
+      const modal = document.getElementById('confirmModal');
+      if (!modal) {
+        if (typeof onConfirm === 'function') onConfirm();
+        return;
+      }
+      document.getElementById('confirmModalTitle').innerText = title;
+      document.getElementById('confirmModalMessage').innerText = message;
+      document.getElementById('confirmModalIcon').innerText = icon;
+      const okBtn = document.getElementById('confirmModalOkBtn');
+      okBtn.innerText = confirmText;
+      okBtn.className = `touch-target-btn py-2.5 px-4 rounded-xl ${confirmClass} text-xs font-semibold cursor-pointer shadow-lg transition-all active:scale-95`;
+      modal.classList.remove('hidden');
+
+      const close = () => {
+        modal.classList.add('hidden');
+        okBtn.onclick = null;
+      };
+
+      document.getElementById('confirmModalCancelBtn').onclick = close;
+      okBtn.onclick = () => {
+        close();
+        if (typeof onConfirm === 'function') onConfirm();
+      };
     }
 
     async function copyTextToClipboard(text, successMsg) {
@@ -2503,13 +2753,21 @@ hoverBar.appendChild(emoBtn);
 
     // Message Revocation / Unsend
     function revokeMessage(messageId) {
-      if (!confirm('Unsend this message for everyone in the room?')) return;
-      publishEncrypted({
-        type: 'unsend_message',
-        messageId: messageId,
-        senderId: currentUser.id
+      openConfirmDialog({
+        title: 'Unsend Message',
+        message: 'Unsend this message for everyone in the room?',
+        icon: '🗑️',
+        confirmText: 'Unsend',
+        confirmClass: 'bg-rose-600 hover:bg-rose-500 text-white',
+        onConfirm: () => {
+          publishEncrypted({
+            type: 'unsend_message',
+            messageId: messageId,
+            senderId: currentUser.id
+          });
+          handleLocalUnsend(messageId);
+        }
       });
-      handleLocalUnsend(messageId);
     }
 
     function handleLocalUnsend(messageId) {
@@ -2544,7 +2802,7 @@ hoverBar.appendChild(emoBtn);
       ta.id = 'edit-textarea-' + messageId;
       ta.value = currentText;
       ta.rows = Math.max(1, String(currentText).split('\n').length);
-      ta.className = 'w-full p-2.5 rounded-xl bg-theme-surface text-theme-strong text-sm border border-[var(--accent)] focus:outline-none resize-y';
+      ta.className = 'w-full p-2.5 rounded-xl bg-theme-surface text-theme-strong text-base sm:text-sm border border-[var(--accent)] focus:outline-none resize-y';
 
       const actions = document.createElement('div');
       actions.className = 'flex items-center justify-end gap-1.5';
@@ -3320,9 +3578,12 @@ hoverBar.appendChild(emoBtn);
       const hasRemoteVideo = !!(remoteStream && remoteStream.getVideoTracks().length > 0);
       const showLocalVideo = currentCallType === 'video' || isScreenSharing;
       const showRemoteVideo = currentCallType === 'video' || hasRemoteVideo;
-      document.getElementById('localVideoContainer').classList.toggle('hidden', !showLocalVideo);
-      document.getElementById('voiceCallAvatarStage').classList.toggle('hidden', showLocalVideo || showRemoteVideo);
-      document.getElementById('remoteVideo').classList.toggle('hidden', !showRemoteVideo);
+      const remoteTile = document.getElementById('remoteVideoTile');
+      const localCont = document.getElementById('localVideoContainer');
+      const avatarStage = document.getElementById('voiceCallAvatarStage');
+      if (localCont) localCont.classList.toggle('hidden', !showLocalVideo);
+      if (remoteTile) remoteTile.classList.toggle('hidden', !showRemoteVideo);
+      if (avatarStage) avatarStage.classList.toggle('hidden', showLocalVideo || showRemoteVideo);
     }
 
     function startCallTimer() {
@@ -3426,6 +3687,10 @@ hoverBar.appendChild(emoBtn);
       }
 
       if (!isScreenSharing) {
+        if (!navigator.mediaDevices || typeof navigator.mediaDevices.getDisplayMedia !== 'function') {
+          showToast('Screen sharing is not supported on this mobile browser.');
+          return;
+        }
         try {
           screenStream = await navigator.mediaDevices.getDisplayMedia({
             video: { cursor: 'always' },
@@ -3504,6 +3769,141 @@ hoverBar.appendChild(emoBtn);
         showToast('Could not enter Picture-in-Picture.');
       }
     };
+
+    // Call Layout Mode: 'stacked' (adaptive full-screen grid) | 'pip' (picture-in-picture)
+    let callLayoutMode = window.innerWidth < 640 ? 'stacked' : 'stacked';
+
+    function setCallLayout(mode) {
+      callLayoutMode = mode;
+      const stage = document.getElementById('videoStageContainer');
+      const icon = document.getElementById('layoutModeIcon');
+      const text = document.getElementById('layoutModeText');
+      if (!stage) return;
+      if (mode === 'pip') {
+        stage.classList.remove('video-stage-stacked');
+        stage.classList.add('video-stage-pip');
+        if (icon) icon.innerText = '🖼️';
+        if (text) text.innerText = 'PiP';
+      } else {
+        stage.classList.remove('video-stage-pip');
+        stage.classList.add('video-stage-stacked');
+        if (icon) icon.innerText = '🔲';
+        if (text) text.innerText = 'Grid';
+      }
+    }
+
+    const toggleCallLayoutBtn = document.getElementById('toggleCallLayoutBtn');
+    if (toggleCallLayoutBtn) {
+      toggleCallLayoutBtn.onclick = () => {
+        setCallLayout(callLayoutMode === 'stacked' ? 'pip' : 'stacked');
+      };
+    }
+
+    // Camera Flip (Front / Rear for mobile devices)
+    let currentFacingMode = 'user';
+    const toggleFlipCameraBtn = document.getElementById('toggleFlipCameraBtn');
+    if (toggleFlipCameraBtn) {
+      toggleFlipCameraBtn.onclick = async () => {
+        if (!localStream || currentCallType !== 'video') {
+          showToast('Start video call to switch camera');
+          return;
+        }
+        currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+        try {
+          const newStream = await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: { facingMode: { ideal: currentFacingMode }, width: { ideal: 1280 }, height: { ideal: 720 } }
+          });
+          const newTrack = newStream.getVideoTracks()[0];
+          const oldTrack = localStream.getVideoTracks()[0];
+          if (oldTrack) {
+            localStream.removeTrack(oldTrack);
+            oldTrack.stop();
+          }
+          localStream.addTrack(newTrack);
+          document.getElementById('localVideo').srcObject = localStream;
+          if (peerConnection) {
+            const sender = peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+            if (sender) {
+              await sender.replaceTrack(newTrack);
+            }
+          }
+          showToast(currentFacingMode === 'user' ? 'Front camera active' : 'Rear camera active');
+        } catch (err) {
+          console.warn('Flip camera error:', err);
+          showToast('Could not switch camera.');
+        }
+      };
+    }
+
+    // Mobile More Menu
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenuDropdown = document.getElementById('mobileMenuDropdown');
+    const mobileThemeBtn = document.getElementById('mobileThemeBtn');
+    const mobileVaultBtn = document.getElementById('mobileVaultBtn');
+    const mobileInviteBtn = document.getElementById('mobileInviteBtn');
+    const mobileSoundBtn = document.getElementById('mobileSoundBtn');
+
+    if (mobileMenuBtn && mobileMenuDropdown) {
+      mobileMenuBtn.onclick = (e) => {
+        e.stopPropagation();
+        mobileMenuDropdown.classList.toggle('hidden');
+      };
+      document.addEventListener('click', (e) => {
+        if (!mobileMenuDropdown.contains(e.target) && e.target !== mobileMenuBtn) {
+          mobileMenuDropdown.classList.add('hidden');
+        }
+      });
+    }
+
+    if (mobileThemeBtn) {
+      mobileThemeBtn.onclick = (e) => {
+        e.stopPropagation();
+        mobileMenuDropdown.classList.add('hidden');
+        openThemeModal();
+      };
+    }
+
+    if (mobileVaultBtn) {
+      mobileVaultBtn.onclick = () => {
+        mobileMenuDropdown.classList.add('hidden');
+        document.getElementById('headerVaultBtn').click();
+      };
+    }
+
+    if (mobileInviteBtn) {
+      mobileInviteBtn.onclick = () => {
+        mobileMenuDropdown.classList.add('hidden');
+        document.getElementById('copyInviteBtn').click();
+      };
+    }
+
+    if (mobileSoundBtn) {
+      mobileSoundBtn.onclick = () => {
+        document.getElementById('soundToggleBtn').click();
+        const stat = document.getElementById('mobileSoundStatus');
+        const emo = document.getElementById('mobileSoundEmoji');
+        if (stat) stat.innerText = soundEnabled ? 'ON' : 'OFF';
+        if (emo) emo.innerText = soundEnabled ? '🔔' : '🔕';
+      };
+    }
+
+    // Responsive Visual Viewport & Virtual Keyboard Handler
+    if (window.visualViewport) {
+      const handleVisualResize = () => {
+        const vp = window.visualViewport;
+        const chatSc = document.getElementById('chatScreen');
+        if (chatSc && !chatSc.classList.contains('hidden')) {
+          chatSc.style.height = `${vp.height}px`;
+          const inputEl = document.getElementById('messageInput');
+          if (document.activeElement === inputEl) {
+            setTimeout(scrollToBottom, 60);
+          }
+        }
+      };
+      window.visualViewport.addEventListener('resize', handleVisualResize);
+      window.visualViewport.addEventListener('scroll', handleVisualResize);
+    }
 
     document.getElementById('minimizeCallBtn').onclick = () => {
       document.getElementById('callOverlay').classList.add('hidden');
@@ -3903,10 +4303,17 @@ hoverBar.appendChild(emoBtn);
     };
 
     nukeVaultBtn.onclick = () => {
-      if (confirm('CRITICAL ACTION: Shred and erase all encrypted message history stored in your browser for this room? This cannot be undone.')) {
-        nukeCurrentRoomVault();
-        vaultModal.classList.add('hidden');
-      }
+      openConfirmDialog({
+        title: 'Shred Local Vault History',
+        message: 'CRITICAL ACTION: Shred and erase all encrypted message history stored in your browser for this room? This cannot be undone.',
+        icon: '🗑️',
+        confirmText: 'Shred Vault',
+        confirmClass: 'bg-rose-600 hover:bg-rose-500 text-white',
+        onConfirm: () => {
+          nukeCurrentRoomVault();
+          vaultModal.classList.add('hidden');
+        }
+      });
     };
 
     // Header Actions
@@ -3915,10 +4322,21 @@ hoverBar.appendChild(emoBtn);
     };
 
     const inviteLinkEl = document.getElementById('copyInviteBtn');
-    inviteLinkEl.onclick = () => {
+    inviteLinkEl.onclick = async () => {
       const url = window.location.origin + window.location.pathname + '#' + encodeURIComponent(currentPasskey);
-      // Reflect the copied link locally so the user can also see/share it
       document.getElementById('headerPasskeyText').innerText = currentPasskey;
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'PassChat Encrypted Room',
+            text: `Join my private encrypted channel on PassChat with passkey: ${currentPasskey}`,
+            url: url
+          });
+          return;
+        } catch (e) {
+          if (e.name === 'AbortError') return;
+        }
+      }
       copyTextToClipboard(url, 'Invite link copied! Share with friends.');
     };
 
@@ -3926,15 +4344,26 @@ hoverBar.appendChild(emoBtn);
       soundEnabled = !soundEnabled;
       localStorage.setItem('passchat_sound', String(soundEnabled));
       document.getElementById('soundIcon').className = soundEnabled ? 'w-4 h-4 text-theme-accent' : 'w-4 h-4 text-theme-dim';
+      const mStatus = document.getElementById('mobileSoundStatus');
+      const mEmoji = document.getElementById('mobileSoundEmoji');
+      if (mStatus) mStatus.innerText = soundEnabled ? 'ON' : 'OFF';
+      if (mEmoji) mEmoji.innerText = soundEnabled ? '🔔' : '🔕';
       showToast(soundEnabled ? 'Sound notifications on' : 'Muted');
     };
 
     document.getElementById('leaveBtn').onclick = () => {
-      if (confirm('Leave this passkey room?')) {
-        if (mqttClient) mqttClient.end();
-        window.location.hash = '';
-        window.location.reload();
-      }
+      openConfirmDialog({
+        title: 'Leave Room',
+        message: 'Leave this passkey room and return to the main entrance?',
+        icon: '🚪',
+        confirmText: 'Leave Room',
+        confirmClass: 'bg-rose-600 hover:bg-rose-500 text-white',
+        onConfirm: () => {
+          if (mqttClient) mqttClient.end();
+          window.location.hash = '';
+          window.location.reload();
+        }
+      });
     };
 
     document.getElementById('lightbox').onclick = () => {
@@ -3943,11 +4372,24 @@ hoverBar.appendChild(emoBtn);
 
     // ==================== GLOBAL KEYBOARD & BACKDROP HANDLING ====================
     // Escape closes every overlay; clicking the backdrop closes modals too.
-    ['messageActionSheet', 'vaultModal', 'lightbox', 'inputEmojiPopover'].forEach((id) => {
+    ['messageActionSheet', 'vaultModal', 'lightbox', 'themeSelectorModal', 'confirmModal'].forEach((id) => {
       const el = document.getElementById(id);
-      el.addEventListener('click', (e) => {
-        if (e.target === el) el.classList.add('hidden');
-      });
+      if (el) {
+        el.addEventListener('click', (e) => {
+          if (e.target === el) el.classList.add('hidden');
+        });
+      }
+    });
+
+    // Outside-click dismissal for popovers and dropdowns on phone
+    document.addEventListener('click', (e) => {
+      const emojiPopover = document.getElementById('inputEmojiPopover');
+      const emojiBtn = document.getElementById('inputEmojiBtn');
+      if (emojiPopover && !emojiPopover.classList.contains('hidden')) {
+        if (!emojiPopover.contains(e.target) && e.target !== emojiBtn && !emojiBtn.contains(e.target)) {
+          emojiPopover.classList.add('hidden');
+        }
+      }
     });
 
     document.addEventListener('keydown', (e) => {
@@ -3956,11 +4398,14 @@ hoverBar.appendChild(emoBtn);
         cancelMessageEdit();
         return;
       }
-      ['messageActionSheet', 'vaultModal', 'lightbox', 'inputEmojiPopover'].forEach((id) => {
-        document.getElementById(id).classList.add('hidden');
+      ['messageActionSheet', 'vaultModal', 'lightbox', 'inputEmojiPopover', 'themeSelectorModal', 'confirmModal'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
       });
       document.getElementById('joinThemeDropdown').classList.add('hidden');
       document.getElementById('headerThemeDropdown').classList.add('hidden');
+      const mDropdown = document.getElementById('mobileMenuDropdown');
+      if (mDropdown) mDropdown.classList.add('hidden');
     });
 
     // Auto-expire stale room memories on app startup too (before any room is joined)

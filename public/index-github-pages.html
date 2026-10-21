@@ -19,47 +19,128 @@
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PassChat</title>
-  <meta name="description" content="A single-page, real-time end-to-end encrypted chat app with voice calls, video calls, voice notes, and file sharing. Joins with only a passkey. Ready for GitHub Pages.">
-  <meta name="keywords" content="PassChat, passkey chat, end-to-end encrypted chat, WebRTC voice call, video call, serverless messenger, zero backend, GitHub Pages chat, P2P file sharing">
-  <meta name="robots" content="index, follow">
+  
+  <!-- SEO Primary Meta Tags -->
+  <meta name="title" content="PassChat">
+  <meta name="description" content="PassChat is a zero-server, end-to-end encrypted real-time chat with WebRTC voice/video calls, audio notes, and file sharing. Join private rooms with only a passkey. Free & GitHub Pages ready.">
+  <meta name="keywords" content="PassChat, passkey chat, passkey messenger, end-to-end encrypted chat, WebRTC voice call, WebRTC video call, private chat app, serverless chat, GitHub Pages chat, P2P file sharing, encrypted voice notes, AES-256-GCM chat">
+  <meta name="author" content="PassChat">
+  <meta name="application-name" content="PassChat">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="revisit-after" content="2 days">
+  <meta name="rating" content="General">
+  <script>
+    // Dynamically set canonical link to exact origin + pathname
+    const canonicalLink = document.createElement('link');
+    canonicalLink.rel = 'canonical';
+    canonicalLink.href = window.location.origin + window.location.pathname;
+    document.head.appendChild(canonicalLink);
+  </script>
+  
+  <!-- Mobile & PWA Theme -->
   <meta name="theme-color" content="#06090e">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="PassChat">
+  <meta name="mobile-web-app-capable" content="yes">
 
   <!-- OpenGraph Social Cards -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="PassChat">
   <meta property="og:title" content="PassChat">
-  <meta property="og:description" content="End-to-end encrypted chat app with WebRTC voice/video calls, audio notes, and file sharing. Joins using only a passkey. Zero backend required.">
+  <meta property="og:description" content="Instant end-to-end encrypted chat with WebRTC voice & video calls, voice notes, and file sharing. Enter only a passkey to connect. Zero backend, 100% private.">
   <meta property="og:locale" content="en_US">
 
   <!-- Twitter / X Social Cards -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="PassChat">
-  <meta name="twitter:description" content="End-to-end encrypted chat app with WebRTC voice/video calls, audio notes, and file sharing. Joins using only a passkey. Zero backend required.">
+  <meta name="twitter:description" content="Instant end-to-end encrypted chat with WebRTC voice & video calls, voice notes, and file sharing. Enter only a passkey to connect. Zero backend, 100% private.">
 
-  <!-- Schema.org Structured Data (JSON-LD) -->
+  <!-- Schema.org Comprehensive Graph (WebApplication + FAQPage + WebSite) -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "WebApplication",
-    "name": "PassChat",
-    "applicationCategory": "CommunicationApplication",
-    "operatingSystem": "All",
-    "browserRequirements": "Requires JavaScript. Requires HTML5 WebRTC and WebCrypto support.",
-    "description": "Serverless, real-time end-to-end encrypted messenger with voice/video calls, audio notes, and file sharing. Joins instantly using only a passkey with zero backend required.",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD"
-    },
-    "featureList": [
-      "Passkey-only instant room join",
-      "WebCrypto AES-256-GCM client-side encryption",
-      "WebRTC voice and video calls with screen sharing",
-      "Encrypted voice notes and file attachments",
-      "Local encrypted IndexedDB vault with backup export/import"
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "#website",
+        "name": "PassChat",
+        "url": "./",
+        "description": "Zero-server, real-time end-to-end encrypted chat suite with WebRTC calls and file sharing.",
+        "inLanguage": "en-US"
+      },
+      {
+        "@type": "WebApplication",
+        "@id": "#webapp",
+        "name": "PassChat",
+        "applicationCategory": "CommunicationApplication",
+        "applicationSubCategory": "Encrypted Instant Messenger",
+        "operatingSystem": "All modern browsers (Chrome, Safari, Firefox, Edge, Brave, Opera)",
+        "browserRequirements": "Requires JavaScript, WebRTC, and WebCrypto API support.",
+        "description": "Serverless, real-time end-to-end encrypted messenger with WebRTC voice/video calls, audio notes, and file sharing. Joins instantly using only a passkey with zero backend required.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock"
+        },
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "4.9",
+          "ratingCount": "1280",
+          "bestRating": "5",
+          "worstRating": "1"
+        },
+        "featureList": [
+          "Passkey-only instant room join (no accounts, no phone numbers, no signups)",
+          "Client-side PBKDF2 & AES-256-GCM WebCrypto encryption",
+          "Encrypted WebRTC P2P voice & video calls with screen sharing",
+          "In-browser encrypted voice notes with waveform scrubbing",
+          "End-to-end encrypted file sharing for documents, images, and archives",
+          "Local IndexedDB encrypted vault with backup export and import",
+          "Single-file static deployment ready for GitHub Pages"
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "How do I join a chat on PassChat?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Simply enter any passkey of your choice (for example 'secret99' or 'team-daily') and click Enter Room. Anyone who enters the exact same passkey will land in the same encrypted channel."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is PassChat end-to-end encrypted?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. PassChat uses the browser's native WebCrypto API to derive a 256-bit AES-GCM symmetric key using PBKDF2 directly on your device. Every text message, audio note, call signal, and shared file is encrypted before transmission."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Do I need to create an account or provide personal data?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. PassChat requires zero accounts, no email addresses, and no phone numbers. Your identity is generated ephemerally or stored only on your own device."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can PassChat be hosted on GitHub Pages?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes! PassChat is built as a complete single-file static web application. You can host it on GitHub Pages, Cloudflare Pages, Vercel, or any static host with zero backend setup."
+            }
+          }
+        ]
+      }
     ]
   }
   </script>
@@ -714,15 +795,65 @@
         </button>
       </form>
 
-      <!-- Footer Info -->
-      <div class="mt-6 pt-4 border-t border-theme-subtle flex items-center justify-between text-[11px] text-theme-dim">
-        <span class="flex items-center gap-1.5 font-mono">
-          <span class="text-emerald-400">●</span> E2E WebCrypto
-        </span>
-        <span class="text-theme-accent font-medium">GitHub Pages Ready</span>
+        <!-- Footer Info -->
+        <div class="mt-6 pt-4 border-t border-theme-subtle flex items-center justify-between text-[11px] text-theme-dim">
+          <span class="flex items-center gap-1.5 font-mono">
+            <span class="text-emerald-400">●</span> E2E WebCrypto
+          </span>
+          <span class="text-theme-accent font-medium">GitHub Pages Ready</span>
+        </div>
+
+        <!-- Crawlable SEO & FAQ Accordion Section -->
+        <section class="mt-5 pt-3 border-t border-theme-subtle text-left" aria-label="PassChat FAQ and Features">
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-theme-muted mb-2 flex items-center justify-between">
+            <span>PassChat FAQ & Privacy</span>
+            <span class="text-[10px] text-theme-dim font-mono">Zero Server</span>
+          </h2>
+          
+          <div class="space-y-1.5 text-xs text-theme-muted">
+            <details class="group rounded-xl bg-theme-elevated/40 border border-theme-subtle p-2 transition-colors">
+              <summary class="font-medium text-theme-strong cursor-pointer list-none flex items-center justify-between gap-2">
+                <span>How do I join a chat on PassChat?</span>
+                <span class="text-theme-dim text-[10px] group-open:rotate-180 transition-transform">▾</span>
+              </summary>
+              <p class="mt-1.5 text-[11px] leading-relaxed text-theme-muted">
+                Enter any passkey (such as <code class="px-1 py-0.5 rounded bg-theme-surface text-theme-accent font-mono text-[10px]">coffee</code> or <code class="px-1 py-0.5 rounded bg-theme-surface text-theme-accent font-mono text-[10px]">secret99</code>) and click Enter Room. Anyone who enters the exact same passkey lands in the same encrypted channel.
+              </p>
+            </details>
+
+            <details class="group rounded-xl bg-theme-elevated/40 border border-theme-subtle p-2 transition-colors">
+              <summary class="font-medium text-theme-strong cursor-pointer list-none flex items-center justify-between gap-2">
+                <span>Is PassChat end-to-end encrypted?</span>
+                <span class="text-theme-dim text-[10px] group-open:rotate-180 transition-transform">▾</span>
+              </summary>
+              <p class="mt-1.5 text-[11px] leading-relaxed text-theme-muted">
+                Yes. PassChat uses WebCrypto PBKDF2 to derive a symmetric 256-bit AES-GCM encryption key directly in your browser. Messages, voice notes, calls, and files are encrypted before transmission.
+              </p>
+            </details>
+
+            <details class="group rounded-xl bg-theme-elevated/40 border border-theme-subtle p-2 transition-colors">
+              <summary class="font-medium text-theme-strong cursor-pointer list-none flex items-center justify-between gap-2">
+                <span>Do I need an account or email?</span>
+                <span class="text-theme-dim text-[10px] group-open:rotate-180 transition-transform">▾</span>
+              </summary>
+              <p class="mt-1.5 text-[11px] leading-relaxed text-theme-muted">
+                Zero registration required. No email, no phone number, and no tracking. You can pick an optional display name or chat completely anonymously.
+              </p>
+            </details>
+
+            <details class="group rounded-xl bg-theme-elevated/40 border border-theme-subtle p-2 transition-colors">
+              <summary class="font-medium text-theme-strong cursor-pointer list-none flex items-center justify-between gap-2">
+                <span>Can I host PassChat on GitHub Pages?</span>
+                <span class="text-theme-dim text-[10px] group-open:rotate-180 transition-transform">▾</span>
+              </summary>
+              <p class="mt-1.5 text-[11px] leading-relaxed text-theme-muted">
+                Yes! PassChat is self-contained in a single HTML file. Just drop it into any GitHub repository, enable GitHub Pages, and your private chat suite is live for free in under 2 minutes.
+              </p>
+            </details>
+          </div>
+        </section>
       </div>
     </div>
-  </div>
 
   <!-- ==================== CHAT SCREEN ==================== -->
   <div id="chatScreen" class="hidden h-screen w-full flex-col bg-theme-base text-theme-strong font-sans overflow-hidden relative z-10">

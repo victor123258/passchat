@@ -1,0 +1,13 @@
+# PassChat Robots Configuration
+User-agent: *
+Allow: /
+
+# Directives for major search engines
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Sitemap
+Sitemap: ./sitemap.xml
